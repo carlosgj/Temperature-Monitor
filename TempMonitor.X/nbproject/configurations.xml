@@ -8,6 +8,7 @@
       <itemPath>analog.h</itemPath>
       <itemPath>comm.h</itemPath>
       <itemPath>main.h</itemPath>
+      <itemPath>RFM69HCW.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
