@@ -83,11 +83,15 @@ void main(void) {
 }
 
 void init(void){
-    TRISBbits.TRISB5 = 0;
+    //Setup basic pin functions
+    TRISBbits.TRISB5 = OUTPUT;
     ANSELA = 0;
     ANSELB = 0;
     ANSELC = 0;
     ANSELD = 0;
+    
+    //Setup timing & clocks
+    OSCCON1bits.NDIV = 0b0000;
     //Setup ms counter
     //Osc speed = 64 MHz
     //Instruction speed = 16 MHz
@@ -96,7 +100,7 @@ void init(void){
     //125 * 8 us = 1 ms
     //Set timer initial value to 255-125=130 to roll over once per ms
     T0CON1bits.T0CS = 0b010; //Increment Timer0 on instruction cycle
-    T0CON1bits.T0CKPS = 0b0111; //1:16 prescaler
+    T0CON1bits.T0CKPS = 0b0111; //1:128 prescaler
     TMR0 = 130;
     PIE0bits.TMR0IE = TRUE;
     T0CON0bits.T0EN = TRUE; //Turn on timer
@@ -104,16 +108,18 @@ void init(void){
     SPIInit();
     //RFM69_initialize(0xDE);
     
+    INTCONbits.PEIE = TRUE; //Enable peripheral interrupts
+    INTCONbits.GIE = TRUE; //Enable interrupts
 }
 
 void run(void){
-    LATBbits.LATB5 = !LATBbits.LATB5;
     readAll();
     asm("NOP");
 }
 
 void interrupt ISR(void){
     if(PIR0bits.TMR0IF){
+        LATBbits.LATB5 = !LATBbits.LATB5;
         PIR0bits.TMR0IF = FALSE;
         ms_count++;
         TMR0 = 130;
