@@ -6,5 +6,7 @@
 void init(void);
 void run(void);
 
+unsigned char radioStatus = 0xff;
+
 #endif
 

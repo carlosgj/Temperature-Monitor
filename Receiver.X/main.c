@@ -74,6 +74,9 @@
 #include "RFM69.h"
 #include "common.h"
 #include "DS3234.h"
+#include "RFM69registers.h"
+#include "Adafruit_RA8875.h"
+#include "display.h"
 
 void main(void) {
     init();
@@ -105,16 +108,22 @@ void init(void){
     PIE0bits.TMR0IE = TRUE;
     T0CON0bits.T0EN = TRUE; //Turn on timer
     
-    SPIInit();
-    //RFM69_initialize(0xDE);
-    
     INTCONbits.PEIE = TRUE; //Enable peripheral interrupts
     INTCONbits.GIE = TRUE; //Enable interrupts
+    
+    SPIInit();
+    
+    displayInit();
+    
+    radioStatus = RFM69_initialize(0xDE);
+    if(radioStatus == 1){
+    RFM69_setMode(RF69_MODE_RX);
+    }
 }
 
 void run(void){
-    readAll();
-    asm("NOP");
+    //drawHomeScreen();
+    //readAll();
 }
 
 void interrupt ISR(void){

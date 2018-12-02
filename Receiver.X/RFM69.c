@@ -31,7 +31,7 @@
 
 volatile unsigned char RFM69_haveData;
 
-unsigned char RFM69_promiscuousMode = FALSE;
+unsigned char RFM69_promiscuousMode = TRUE;
 unsigned char RFM69_powerLevel = 31;
 
 unsigned char RFM69_initialize(unsigned char nodeID) {
@@ -41,13 +41,13 @@ unsigned char RFM69_initialize(unsigned char nodeID) {
         /* 0x02 */
         { REG_DATAMODUL, RF_DATAMODUL_DATAMODE_PACKET | RF_DATAMODUL_MODULATIONTYPE_FSK | RF_DATAMODUL_MODULATIONSHAPING_00}, // no shaping
         /* 0x03 */
-        { REG_BITRATEMSB, RF_BITRATEMSB_55555}, // default: 4.8 KBPS
+        { REG_BITRATEMSB, RF_BITRATEMSB_1200}, // default: 4.8 KBPS
         /* 0x04 */
-        { REG_BITRATELSB, RF_BITRATELSB_55555},
+        { REG_BITRATELSB, RF_BITRATELSB_1200},
         /* 0x05 */
-        { REG_FDEVMSB, RF_FDEVMSB_50000}, // default: 5KHz, (FDEV + BitRate / 2 <= 500KHz)
+        { REG_FDEVMSB, RF_FDEVMSB_5000}, // default: 5KHz, (FDEV + BitRate / 2 <= 500KHz)
         /* 0x06 */
-        { REG_FDEVLSB, RF_FDEVLSB_50000},
+        { REG_FDEVLSB, RF_FDEVLSB_5000},
 
         /* 0x07 */
         { REG_FRFMSB, (unsigned char) RF_FRFMSB_915},
@@ -78,13 +78,13 @@ unsigned char RFM69_initialize(unsigned char nodeID) {
         { REG_RSSITHRESH, 220}, // must be set to dBm = (-Sensitivity / 2), default is 0xE4 = 228 so -114dBm
         ///* 0x2D */ { REG_PREAMBLELSB, RF_PREAMBLESIZE_LSB_VALUE } // default 3 preamble bytes 0xAAAAAA
         /* 0x2E */
-        { REG_SYNCCONFIG, RF_SYNC_ON | RF_SYNC_FIFOFILL_AUTO | RF_SYNC_SIZE_2 | RF_SYNC_TOL_0},
+        { REG_SYNCCONFIG, RF_SYNC_OFF | RF_SYNC_FIFOFILL_MANUAL | RF_SYNC_SIZE_2 | RF_SYNC_TOL_0},
         /* 0x2F */
         { REG_SYNCVALUE1, 0x2D}, // attempt to make this compatible with sync1 byte of RFM12B lib
         /* 0x30 */
-        { REG_SYNCVALUE2, 0x22}, // NETWORK ID
+        { REG_SYNCVALUE2, 123}, // NETWORK ID
         /* 0x37 */
-        { REG_PACKETCONFIG1, RF_PACKET1_FORMAT_VARIABLE | RF_PACKET1_DCFREE_OFF | RF_PACKET1_CRC_ON | RF_PACKET1_CRCAUTOCLEAR_ON | RF_PACKET1_ADRSFILTERING_OFF},
+        { REG_PACKETCONFIG1, RF_PACKET1_FORMAT_VARIABLE | RF_PACKET1_DCFREE_OFF | RF_PACKET1_CRC_OFF | RF_PACKET1_CRCAUTOCLEAR_ON | RF_PACKET1_ADRSFILTERING_OFF},
         /* 0x38 */
         { REG_PAYLOADLENGTH, 66}, // in variable length mode: the max frame size, not used in TX
         ///* 0x39 */ { REG_NODEADRS, nodeID }, // turned off because we're not using address filtering
@@ -234,7 +234,7 @@ void RFM69_interruptHandler() {
         RFM69_setMode(RF69_MODE_STANDBY);
         RFM69_CS_LAT = FALSE;
         SPI2Transfer(REG_FIFO & 0x7F);
-        RFM69_PAYLOADLEN = SPI2Transfer(0);
+        RFM69_PAYLOADLEN = 20;
         if (RFM69_PAYLOADLEN > 66) {
             RFM69_PAYLOADLEN = 66; // precaution
         }
@@ -255,7 +255,7 @@ void RFM69_interruptHandler() {
         RFM69_ACK_RECEIVED = CTLbyte & RFM69_CTL_SENDACK; // extract ACK-received flag
         RFM69_ACK_REQUESTED = CTLbyte & RFM69_CTL_REQACK; // extract ACK-requested flag
 
-        interruptHook(CTLbyte); // TWS: hook to derived class interrupt function
+        //interruptHook(CTLbyte); // TWS: hook to derived class interrupt function
 
         for (unsigned char i = 0; i < RFM69_DATALEN; i++) {
             RFM69_DATA[i] = SPI2Transfer(0);
@@ -297,7 +297,7 @@ unsigned char RFM69_receiveDone() {
     //{
     if (_haveData) {
         _haveData = FALSE;
-        interruptHandler();
+        RFM69_interruptHandler();
     }
     if (RFM69_mode == RF69_MODE_RX && RFM69_PAYLOADLEN > 0) {
         RFM69_setMode(RF69_MODE_STANDBY); // enables interrupts
@@ -374,11 +374,20 @@ void RFM69_rcCalibration() {
 }
 
 void RFM69_writeReg(unsigned char address, unsigned char data){
-    
+    address |= 0b10000000; //Set MSB to 1 for write
+    RFM69_CS_LAT = FALSE; //select radio
+    SPI2Transfer(address);
+    SPI2Transfer(data);
+    RFM69_CS_LAT = TRUE; //Deselect radio
 }
 
 unsigned char RFM69_readReg(unsigned char address){
-    return 0;
+    address &= 0b01111111; //Set MSB to 0 for read
+    RFM69_CS_LAT = FALSE; //select radio
+    SPI2Transfer(address);
+    unsigned char result = SPI2Transfer(0);
+    RFM69_CS_LAT = TRUE; //Deselect radio
+    return result;
 }
 
 //=============================================================================
