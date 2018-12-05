@@ -79,20 +79,29 @@
 #include "display.h"
 
 void main(void) {
-    init();
-    while(1){
-        run();
+    if (!init()) {
+        setDisplayMode(DISP_MODE_HOME);
+        while (1) {
+            run();
+        }
+    }
+    else{
+        while(TRUE){
+            
+        }
     }
 }
 
-void init(void){
+unsigned char init(void) {
+    unsigned char initError = FALSE;
+
     //Setup basic pin functions
     TRISBbits.TRISB5 = OUTPUT;
     ANSELA = 0;
     ANSELB = 0;
     ANSELC = 0;
     ANSELD = 0;
-    
+
     //Setup timing & clocks
     OSCCON1bits.NDIV = 0b0000;
     //Setup ms counter
@@ -107,27 +116,211 @@ void init(void){
     TMR0 = 130;
     PIE0bits.TMR0IE = TRUE;
     T0CON0bits.T0EN = TRUE; //Turn on timer
-    
+
     INTCONbits.PEIE = TRUE; //Enable peripheral interrupts
     INTCONbits.GIE = TRUE; //Enable interrupts
-    
+
     SPIInit();
-    
-    displayInit();
-    
+
+    //if (displayInit()) {
+    //    initError = TRUE;
+    //}
+
     radioStatus = RFM69_initialize(0xDE);
-    if(radioStatus == 1){
-    RFM69_setMode(RF69_MODE_RX);
+    if (radioStatus == 1) {
+        RFM69_setMode(RF69_MODE_RX);
+        //PRINT("Radio initialized...\n");
+    } else {
+        //PRINT("Radio error!");
+    //    initError = TRUE;
+    }
+
+    //Set up buttons
+    BUTTON1_TRIS = INPUT;
+    BUTTON2_TRIS = INPUT;
+    BUTTON3_TRIS = INPUT;
+    BUTTON4_TRIS = INPUT;
+    BUTTON5_TRIS = INPUT;
+    BUTTON6_TRIS = INPUT;
+
+    BUTTON1_WPU = TRUE;
+    BUTTON2_WPU = TRUE;
+    BUTTON3_WPU = TRUE;
+    BUTTON4_WPU = TRUE;
+    BUTTON5_WPU = TRUE;
+    BUTTON6_WPU = TRUE;
+
+    buttonState.all = 0;
+    oldButtonState.all = 0;
+    buttonPressed.all = 0;
+
+    return initError;
+}
+
+void run(void) {
+    //updateButtons();
+    //handleButtonActions();
+    //drawHomeScreen();
+    
+    pros_seconds.all = 0;
+    pros_minutes.all = 0;
+    pros_hours.all = 0;
+    pros_date.all = 0;
+    pros_month.all = 0;
+    pros_years.all = 0;
+    setTime();
+    getTime();
+    drawTime();
+    unsigned char foo = readRTCReg(REG_CONTROL);
+    foo = readRTCReg(REG_CONTROL_STAT);
+    readAll();
+    __delay_ms(1000);
+}
+
+void updateButtons(void) {
+    oldButtonState.all = buttonState.all;
+
+    buttonState.B1 = !BUTTON1_PORT;
+    buttonState.B2 = !BUTTON2_PORT;
+    buttonState.B3 = !BUTTON3_PORT;
+    buttonState.B4 = !BUTTON4_PORT;
+    buttonState.B5 = !BUTTON5_PORT;
+    buttonState.B6 = !BUTTON6_PORT;
+
+    buttonPressed.all = buttonState.all & ~oldButtonState.all;
+}
+
+void handleButtonActions(void) {
+    //If any button is pressed when asleep, wake up
+    if (buttonPressed.all != 0 && isSleep) {
+        setSleep(FALSE);
+        __delay_ms(250);
+        return;
+    }
+    if (buttonPressed.B1) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                //Switch to past-day plot
+                break;
+            case DISP_MODE_UTIL:
+                //Switch to home
+                setDisplayMode(DISP_MODE_HOME);
+                break;
+            case DISP_MODE_SETTIME:
+                //Switch to home
+                setDisplayMode(DISP_MODE_HOME);
+                break;
+        }
+        return;
+    }
+
+    if (buttonPressed.B2) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                //Switch to past-week plot
+                break;
+            case DISP_MODE_UTIL:
+                //Switch to time-set screen
+                setDisplayMode(DISP_MODE_SETTIME);
+                getTime();
+                pros_seconds.all = seconds_reg.all;
+                pros_minutes.all = minutes_reg.all;
+                pros_hours.all = hours_reg.all;
+                pros_date.all = date_reg.all;
+                pros_month.all = month_reg.all;
+                pros_years.all = years_reg.all;
+                activeTimeChar = ACTIVE_TIME_10YR;
+                drawProspectiveTime();
+                break;
+            case DISP_MODE_SETTIME:
+                setTime();
+                break;
+        }
+        return;
+    }
+
+    if (buttonPressed.B3) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                //Switch to past-month plot
+                break;
+            case DISP_MODE_UTIL:
+                break;
+            case DISP_MODE_SETTIME:
+                //Move cursor left
+                if (activeTimeChar == 0) {
+                    activeTimeChar = ACTIVE_TIME_SECOND;
+                } else {
+                    activeTimeChar--;
+                }
+                drawProspectiveTime();
+                break;
+        }
+        return;
+    }
+
+    if (buttonPressed.B4) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                //Switch to past-year plot
+                break;
+            case DISP_MODE_UTIL:
+                break;
+            case DISP_MODE_SETTIME:
+                //Move cursor right
+                if (activeTimeChar == ACTIVE_TIME_SECOND) {
+                    activeTimeChar = 0;
+                } else {
+                    activeTimeChar++;
+                }
+                drawProspectiveTime();
+                break;
+        }
+        return;
+    }
+
+    if (buttonPressed.B5) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                //Go to util screen
+                setDisplayMode(DISP_MODE_UTIL);
+                break;
+            case DISP_MODE_UTIL:
+                break;
+            case DISP_MODE_SETTIME:
+                //Increment
+                incrementActiveChar();
+                drawProspectiveTime();
+                break;
+        }
+        return;
+    }
+
+    if (buttonPressed.B6) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                //Turn off screen
+                setSleep(TRUE);
+                break;
+            case DISP_MODE_UTIL:
+                break;
+            case DISP_MODE_SETTIME:
+                //Decrement
+                decrementActiveChar();
+                drawProspectiveTime();
+                break;
+        }
+        return;
+    }
+
+    //If a button was pressed, do the action, then delay to ignore bounces
+    if (buttonPressed.all != 0) {
+        __delay_ms(400);
     }
 }
 
-void run(void){
-    //drawHomeScreen();
-    //readAll();
-}
-
-void interrupt ISR(void){
-    if(PIR0bits.TMR0IF){
+void interrupt ISR(void) {
+    if (PIR0bits.TMR0IF) {
         LATBbits.LATB5 = !LATBbits.LATB5;
         PIR0bits.TMR0IF = FALSE;
         ms_count++;

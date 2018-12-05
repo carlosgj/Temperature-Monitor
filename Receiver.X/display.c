@@ -3,8 +3,9 @@
 #include "common.h"
 #include "display.h"
 #include "pindef.h"
+#include "DS3234.h"
 
-void displayInit(void) {
+unsigned char displayInit(void) {
     DISP_RST_TRIS = OUTPUT;
     DISP_RST_LAT = TRUE;
     RA8875_reset();
@@ -20,10 +21,13 @@ void displayInit(void) {
     RA8875_PWM1out(255);
     RA8875_fillScreen(RA8875_BLACK);
     RA8875_textMode();
+    textLine = 1;
+    RA8875_textEnlarge(0);
     RA8875_textSetCursor(10, 10);
     RA8875_textTransparent(RA8875_WHITE);
-    RA8875_textWrite("Display initialized...", sizeof ("Display initialized..."));
-    __delay_ms(1000);
+    PRINT("Display initialized...\n");
+    __delay_ms(500);
+    return 0;
 }
 
 void drawTemplate(void) {
@@ -64,14 +68,14 @@ void drawHomeScreen(void) {
     vpos = FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN;
     for (i = MIN_GRAPH_TEMP; i <= MAX_GRAPH_TEMP; i += 10) {
         RA8875_textSetCursor(0, vpos - 10);
-        atoi(i, number, FALSE);
+        itoa(i, number, FALSE);
         RA8875_textWrite(number, 3);
         vpos -= GRAPH_TICK_INTERVAL;
     }
     vpos = FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN;
     for (i = MIN_GRAPH_TEMP; i <= MAX_GRAPH_TEMP; i += 10) {
         RA8875_textSetCursor(GRAPH_RIGHT + 4, vpos - 10);
-        atoi(i, number, FALSE);
+        itoa(i, number, FALSE);
         RA8875_textWrite(number, 3);
         vpos -= GRAPH_TICK_INTERVAL;
     }
@@ -105,12 +109,49 @@ void drawUtilScreen(void) {
     RA8875_textTransparent(RA8875_WHITE);
     RA8875_textWrite("Utils & Stats", sizeof ("Utils & Stats"));
 
+    RA8875_textEnlarge(1);
+    RA8875_textSetCursor(45, MENU_TEXT_Y);
+    PRINT("Home");
+    RA8875_textSetCursor(175, MENU_TEXT_Y);
+    PRINT("Time");
+    RA8875_textSetCursor(300, MENU_TEXT_Y);
+    PRINT("Null");
+    RA8875_textSetCursor(435, MENU_TEXT_Y);
+    PRINT("Null");
+    RA8875_textSetCursor(570, MENU_TEXT_Y);
+    PRINT("Null");
+    RA8875_textSetCursor(695, MENU_TEXT_Y);
+    PRINT("RESET");
+
     RA8875_textEnlarge(0);
     RA8875_textSetCursor(0, HEADER_LEVEL + 10);
     RA8875_textWrite("Current EEPROM page: ", sizeof ("Current EEPROM page: "));
 }
 
-void atoi(unsigned char val, char* dest, unsigned char zeroPad) {
+void drawSetTimeScreen() {
+    drawTemplate();
+    RA8875_textMode();
+    RA8875_textSetCursor(250, 10);
+    RA8875_textEnlarge(2);
+    RA8875_textTransparent(RA8875_WHITE);
+    PRINT("Set Time");
+
+    RA8875_textEnlarge(1);
+    RA8875_textSetCursor(45, MENU_TEXT_Y);
+    PRINT("Home");
+    RA8875_textSetCursor(175, MENU_TEXT_Y);
+    PRINT("Set");
+    RA8875_textSetCursor(300, MENU_TEXT_Y);
+    PRINT("\x1b");
+    RA8875_textSetCursor(435, MENU_TEXT_Y);
+    PRINT("\x1a");
+    RA8875_textSetCursor(570, MENU_TEXT_Y);
+    PRINT("\x18");
+    RA8875_textSetCursor(695, MENU_TEXT_Y);
+    PRINT("\x19");
+}
+
+void itoa(unsigned char val, char* dest, unsigned char zeroPad) {
     unsigned char thisDigit;
     thisDigit = val / 100;
     if (thisDigit == 0 && !zeroPad) {
@@ -163,4 +204,445 @@ unsigned int tempToPixel(unsigned char temp) {
 
 void plotTemp(unsigned int x, unsigned char temp) {
     RA8875_fillCircle(x, tempToPixel(temp), 1, RA8875_RED);
+}
+
+void setDisplayMode(unsigned char newMode) {
+    switch (newMode) {
+        case DISP_MODE_HOME:
+            drawHomeScreen();
+            currentDisplayMode = newMode;
+            break;
+        case DISP_MODE_UTIL:
+            drawUtilScreen();
+            currentDisplayMode = newMode;
+            break;
+        case DISP_MODE_SETTIME:
+            drawSetTimeScreen();
+            currentDisplayMode = newMode;
+            break;
+        default:
+            break;
+    }
+
+}
+
+void setSleep(unsigned char sleep) {
+    if (sleep) {
+        RA8875_PWM1out(0);
+        isSleep = TRUE;
+    } else {
+        RA8875_PWM1out(255);
+        isSleep = FALSE;
+    }
+}
+
+void drawTime(void) {
+    char temp[3];
+    RA8875_textMode();
+    RA8875_textSetCursor(500, 10);
+    RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    RA8875_textEnlarge(0);
+    PRINT("20");
+    itoa(years_reg.tens, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+    itoa(years_reg.ones, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+    PRINT("/");
+    itoa(month_reg.tens, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+    itoa(month_reg.ones, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+    PRINT("/");
+    itoa(date_reg.tens, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+    itoa(date_reg.ones, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+    PRINT(" ");
+    itoa(hours_reg.tens, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+    itoa(hours_reg.ones, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+    PRINT(":");
+    itoa(minutes_reg.tens, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+    itoa(minutes_reg.ones, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+    PRINT(":");
+    itoa(seconds_reg.tens, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+    itoa(seconds_reg.ones, temp, TRUE);
+    RA8875_textWrite(temp + 2, 1);
+
+}
+
+void drawProspectiveTime(void) {
+    char temp[3];
+    RA8875_textMode();
+    RA8875_textSetCursor(100, 200);
+    RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    RA8875_textEnlarge(2);
+    PRINT("20");
+    itoa(pros_years.tens, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_10YR) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+    itoa(pros_years.ones, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_YEAR) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+    PRINT("/");
+    itoa(pros_month.tens, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_10MNTH) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+    itoa(pros_month.ones, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_MONTH) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+    PRINT("/");
+    itoa(pros_date.tens, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_10DAY) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+    itoa(pros_date.ones, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_DAY) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+    PRINT(" ");
+    itoa(pros_hours.tens, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_10HR) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+    itoa(pros_hours.ones, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_HOUR) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+    PRINT(":");
+    itoa(pros_minutes.tens, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_10MIN) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+    itoa(pros_minutes.ones, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_MINUTE) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+    PRINT(":");
+    itoa(pros_seconds.tens, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_10SEC) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+    itoa(pros_seconds.ones, temp, TRUE);
+    if (activeTimeChar == ACTIVE_TIME_SECOND) {
+        RA8875_textColor(RA8875_BLACK, RA8875_WHITE);
+        RA8875_textWrite(temp + 2, 1);
+        RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    } else {
+        RA8875_textWrite(temp + 2, 1);
+    }
+}
+
+void incrementActiveChar(void) {
+    switch (activeTimeChar) {
+        case ACTIVE_TIME_10YR:
+            if (pros_years.tens == 9) {
+                pros_years.tens = 0;
+            } else {
+                pros_years.tens++;
+            }
+            break;
+        case ACTIVE_TIME_YEAR:
+            if (pros_years.ones == 9) {
+                pros_years.ones = 0;
+            } else {
+                pros_years.ones++;
+            }
+            break;
+        case ACTIVE_TIME_10MNTH:
+            if (pros_month.ones < 3) {
+                if (pros_month.tens == 1) {
+                    pros_month.tens = 0;
+                } else {
+                    pros_month.tens++;
+                }
+            }
+            break;
+        case ACTIVE_TIME_MONTH:
+            if (pros_month.tens == 0) {
+                if (pros_month.ones == 9) {
+                    pros_month.ones = 0;
+                } else {
+                    pros_month.ones++;
+                }
+            } else {
+                if (pros_month.ones == 2) {
+                    pros_month.ones = 0;
+                } else {
+                    pros_month.ones++;
+                }
+            }
+            break;
+        case ACTIVE_TIME_10DAY:
+            if (pros_date.ones < 2) {
+                if (pros_date.tens == 3) {
+                    pros_date.tens = 0;
+                } else {
+                    pros_date.tens++;
+                }
+            } else {
+                if (pros_date.tens == 2) {
+                    pros_date.tens = 0;
+                } else {
+                    pros_date.tens++;
+                }
+            }
+            break;
+        case ACTIVE_TIME_DAY:
+            if (pros_date.tens < 3) {
+                if (pros_date.ones == 9) {
+                    pros_date.ones = 0;
+                } else {
+                    pros_date.ones++;
+                }
+            } else {
+                if (pros_date.ones == 1) {
+                    pros_date.ones = 0;
+                } else {
+                    pros_date.ones++;
+                }
+            }
+            break;
+        case ACTIVE_TIME_10HR:
+            if (pros_hours.ones < 5) {
+                if (pros_hours.tens == 2) {
+                    pros_hours.tens = 0;
+                } else {
+                    pros_hours.tens++;
+                }
+            } else {
+                if (pros_hours.tens == 1) {
+                    pros_hours.tens = 0;
+                } else {
+                    pros_hours.tens++;
+                }
+            }
+            break;
+        case ACTIVE_TIME_HOUR:
+            if (pros_hours.tens < 2) {
+                if (pros_hours.ones == 9) {
+                    pros_hours.ones = 0;
+                } else {
+                    pros_hours.ones++;
+                }
+            } else {
+                if (pros_hours.ones == 4) {
+                    pros_hours.ones = 0;
+                } else {
+                    pros_hours.ones++;
+                }
+            }
+            break;
+        case ACTIVE_TIME_10MIN:
+            if (pros_minutes.tens == 5) {
+                pros_minutes.tens = 0;
+            } else {
+                pros_minutes.tens++;
+            }
+            break;
+        case ACTIVE_TIME_MINUTE:
+            if (pros_minutes.ones == 9) {
+                pros_minutes.ones = 0;
+            } else {
+                pros_minutes.ones++;
+            }
+            break;
+        case ACTIVE_TIME_10SEC:
+            if (pros_seconds.tens == 5) {
+                pros_seconds.tens = 0;
+            } else {
+                pros_seconds.tens++;
+            }
+            break;
+        case ACTIVE_TIME_SECOND:
+            if (pros_seconds.ones == 9) {
+                pros_seconds.ones = 0;
+            } else {
+                pros_seconds.ones++;
+            }
+            break;
+    }
+}
+
+void decrementActiveChar(void) {
+    switch (activeTimeChar) {
+        case ACTIVE_TIME_10YR:
+            if (pros_years.tens == 0) {
+                pros_years.tens = 9;
+            } else {
+                pros_years.tens--;
+            }
+            break;
+        case ACTIVE_TIME_YEAR:
+            if (pros_years.ones == 0) {
+                pros_years.ones = 9;
+            } else {
+                pros_years.ones--;
+            }
+            break;
+        case ACTIVE_TIME_10MNTH:
+            if (pros_month.ones < 3) {
+                if (pros_month.tens == 0) {
+                    pros_month.tens = 1;
+                } else {
+                    pros_month.tens--;
+                }
+            }
+            break;
+        case ACTIVE_TIME_MONTH:
+            if (pros_month.tens == 0) {
+                if (pros_month.ones == 0) {
+                    pros_month.ones = 9;
+                } else {
+                    pros_month.ones--;
+                }
+            } else {
+                if (pros_month.ones == 0) {
+                    pros_month.ones = 2;
+                } else {
+                    pros_month.ones--;
+                }
+            }
+            break;
+        case ACTIVE_TIME_10DAY:
+            if (pros_date.ones < 2) {
+                if (pros_date.tens == 0) {
+                    pros_date.tens = 3;
+                } else {
+                    pros_date.tens--;
+                }
+            } else {
+                if (pros_date.tens == 0) {
+                    pros_date.tens = 2;
+                } else {
+                    pros_date.tens--;
+                }
+            }
+            break;
+        case ACTIVE_TIME_DAY:
+            if (pros_date.tens < 3) {
+                if (pros_date.ones == 0) {
+                    pros_date.ones = 9;
+                } else {
+                    pros_date.ones--;
+                }
+            } else {
+                if (pros_date.ones == 0) {
+                    pros_date.ones = 1;
+                } else {
+                    pros_date.ones--;
+                }
+            }
+            break;
+        case ACTIVE_TIME_10HR:
+            if (pros_hours.ones < 5) {
+                if (pros_hours.tens == 0) {
+                    pros_hours.tens = 2;
+                } else {
+                    pros_hours.tens--;
+                }
+            } else {
+                if (pros_hours.tens == 0) {
+                    pros_hours.tens = 1;
+                } else {
+                    pros_hours.tens--;
+                }
+            }
+            break;
+        case ACTIVE_TIME_HOUR:
+            if (pros_hours.tens < 2) {
+                if (pros_hours.ones == 0) {
+                    pros_hours.ones = 9;
+                } else {
+                    pros_hours.ones--;
+                }
+            } else {
+                if (pros_hours.ones == 0) {
+                    pros_hours.ones = 4;
+                } else {
+                    pros_hours.ones--;
+                }
+            }
+            break;
+        case ACTIVE_TIME_10MIN:
+            if (pros_minutes.tens == 0) {
+                pros_minutes.tens = 5;
+            } else {
+                pros_minutes.tens--;
+            }
+            break;
+        case ACTIVE_TIME_MINUTE:
+            if (pros_minutes.ones == 0) {
+                pros_minutes.ones = 9;
+            } else {
+                pros_minutes.ones--;
+            }
+            break;
+        case ACTIVE_TIME_10SEC:
+            if (pros_seconds.tens == 0) {
+                pros_seconds.tens = 5;
+            } else {
+                pros_seconds.tens--;
+            }
+            break;
+        case ACTIVE_TIME_SECOND:
+            if (pros_seconds.ones == 0) {
+                pros_seconds.ones = 9;
+            } else {
+                pros_seconds.ones--;
+            }
+            break;
+    }
 }

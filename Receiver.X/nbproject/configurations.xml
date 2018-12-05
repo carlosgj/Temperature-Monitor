@@ -102,6 +102,7 @@
         <property key="verbose" value="false"/>
         <property key="warning-level" value="-3"/>
         <property key="what-to-do" value="ignore"/>
+        <appendMe value="--msgdisable=520"/>
       </HI-TECH-COMP>
       <HI-TECH-LINK>
         <property key="additional-options-checksum" value=""/>
@@ -150,7 +151,6 @@
         <property key="ToolFirmwareFilePath"
                   value="Press to browse for a specific firmware version"/>
         <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
-        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>

@@ -1,7 +1,7 @@
 #include <xc.h>
 #include "DS3234.h"
 
-void writeReg(unsigned char address, unsigned char data){
+void writeRTCReg(unsigned char address, unsigned char data){
     address |= 0b10000000; //Set W bit
     RTC_CS_LAT = FALSE;
     SPI2Transfer(address);
@@ -9,7 +9,7 @@ void writeReg(unsigned char address, unsigned char data){
     RTC_CS_LAT = TRUE;
 }
 
-unsigned char readReg(unsigned char address){
+unsigned char readRTCReg(unsigned char address){
     address &= 0b01111111; //Clear W bit
     RTC_CS_LAT = FALSE;
     //asm("NOP");
@@ -20,7 +20,16 @@ unsigned char readReg(unsigned char address){
     return result;
 }
 
-void setTime(unsigned char seconds, unsigned char minutes, unsigned char hours, unsigned char date, unsigned char month, unsigned int year){
+void getTime(){
+    seconds_reg.all = readRTCReg(REG_SECOND);
+    minutes_reg.all = readRTCReg(REG_MINUTE);
+    hours_reg.all = readRTCReg(REG_HOUR);
+    date_reg.all = readRTCReg(REG_DATE);
+    month_reg.all = readRTCReg(REG_MONTH);
+    years_reg.all = readRTCReg(REG_YEAR);
+}
+
+void formatTime(unsigned char seconds, unsigned char minutes, unsigned char hours, unsigned char date, unsigned char month, unsigned int year){
     seconds_reg.tens = seconds / 10;
     seconds_reg.ones = seconds % 10;
     
@@ -28,18 +37,7 @@ void setTime(unsigned char seconds, unsigned char minutes, unsigned char hours, 
     minutes_reg.ones = minutes % 10;
     
     hours_reg.n24 = FALSE; //Set 24-hour time
-    if(hours > 19){
-        hours_reg.nAM = TRUE;
-    }
-    else{
-        hours_reg.nAM = FALSE;
-    }
-    if(hours > 9 && hours < 20){
-        hours_reg.tens = TRUE;
-    }
-    else{
-        hours_reg.tens = FALSE;
-    }
+    hours_reg.tens = hours / 10;
     hours_reg.ones = hours % 10;
     
     date_reg.tens = date / 10;
@@ -50,16 +48,20 @@ void setTime(unsigned char seconds, unsigned char minutes, unsigned char hours, 
     
     years_reg.tens = year / 10;
     years_reg.ones = year % 10;
-    
-    writeReg(REG_SECOND, seconds_reg.all);
-    writeReg(REG_MINUTE, minutes_reg.all);
-    writeReg(REG_HOUR, hours_reg.all);
-    writeReg(REG_DATE, date_reg.all);
-    writeReg(REG_MONTH, month_reg.all);
-    writeReg(REG_YEAR, years_reg.all);
-    unsigned char oldStat = readReg(REG_CONTROL_STAT);
+}
+
+//Writes the prospective time (in pros_*) to RTC
+void setTime(void){
+    writeRTCReg(REG_SECOND, pros_seconds.all);
+    writeRTCReg(REG_MINUTE, pros_minutes.all);
+    writeRTCReg(REG_HOUR, pros_hours.all);
+    writeRTCReg(REG_DATE, pros_date.all);
+    writeRTCReg(REG_MONTH, pros_month.all);
+    writeRTCReg(REG_YEAR, pros_years.all);
+    //Clear OSF flag
+    unsigned char oldStat = readRTCReg(REG_CONTROL_STAT);
     oldStat &= 0b01111111;
-    writeReg(REG_CONTROL_STAT, oldStat);
+    writeRTCReg(REG_CONTROL_STAT, oldStat);
 }
 
 void readAll(void){

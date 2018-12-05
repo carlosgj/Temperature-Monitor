@@ -3,15 +3,17 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/main.c</file>
-            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/main.h</file>
-            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/RFM69.c</file>
-            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/RFM69.h</file>
             <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/common.h</file>
-            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/SPI.h</file>
-            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/SPI.c</file>
-            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/RFM69registers.h</file>
+            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/main.h</file>
+            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/display.c</file>
+            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/Adafruit_RA8875.h</file>
+            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/DS3234.h</file>
+            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/Adafruit_RA8875.c</file>
+            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/display.h</file>
+            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/DS3234.c</file>
             <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/pindef.h</file>
+            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/main.c</file>
+            <file>file:/C:/Users/carlosj/Documents/Temp%20Monitor/Receiver.X/SPI.c</file>
         </group>
     </open-files>
 </project-private>

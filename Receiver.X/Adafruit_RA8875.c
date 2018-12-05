@@ -353,7 +353,26 @@ void RA8875_textEnlarge(unsigned char scale) {
 void RA8875_textWrite(const char* buffer, unsigned int len) {
     RA8875_writeCommand(RA8875_MRWC);
     for (unsigned int i = 0; i < len; i++) {
-        RA8875_writeData(buffer[i]);
+        if(buffer[i] == '\n'){
+            switch(_textScale){
+                case 0:
+                    RA8875_textSetCursor(10, (++textLine)*14);
+                    break;
+                case 1:
+                    RA8875_textSetCursor(10, (++textLine)*24);
+                    break;
+                    case 2:
+                    RA8875_textSetCursor(10, (++textLine)*44);
+                    break;
+                    case 3:
+                    RA8875_textSetCursor(10, (++textLine)*84);
+                    break;
+            }
+        }
+        else{
+            RA8875_writeData(buffer[i]);
+        }
+        __delay_ms(1);
     }
 }
 

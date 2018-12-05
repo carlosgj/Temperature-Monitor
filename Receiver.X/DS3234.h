@@ -21,8 +21,7 @@ union bcd {
     unsigned char all;
     struct{
         unsigned ones   :4;
-        unsigned tens   :3;
-        unsigned ZERO   :1;
+        unsigned tens   :4;
     };
 };
 
@@ -30,8 +29,7 @@ union hour_t{
     unsigned char all;
     struct{
         unsigned ones   :4;
-        unsigned tens   :1;
-        unsigned nAM    :1;
+        unsigned tens   :2;
         unsigned n24    :1;
         unsigned ZERO   :1;
     };
@@ -54,11 +52,20 @@ union bcd date_reg;
 union month_t month_reg;
 union bcd years_reg;
 
+union bcd pros_seconds;
+union bcd pros_minutes;
+union hour_t pros_hours;
+union bcd pros_date;
+union month_t pros_month;
+union bcd pros_years;
+
 unsigned char allRegs[7];
 
-void writeReg(unsigned char address, unsigned char data);
-unsigned char readReg(unsigned char address);
-void setTime(unsigned char seconds, unsigned char minutes, unsigned char hours, unsigned char date, unsigned char month, unsigned int year);
+void writeRTCReg(unsigned char address, unsigned char data);
+unsigned char readRTCReg(unsigned char address);
+void formatTime(unsigned char seconds, unsigned char minutes, unsigned char hours, unsigned char date, unsigned char month, unsigned int year);
+void getTime(void);
+void setTime(void);
 void readAll(void);
 
 #endif	/* XC_HEADER_TEMPLATE_H */

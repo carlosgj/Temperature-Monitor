@@ -21,14 +21,44 @@
 //Number of pixels off the bottom of the graph of the max temperature
 #define GRAPH_MAX_PIXEL (GRAPH_TICK_INTERVAL*((MAX_GRAPH_TEMP - MIN_GRAPH_TEMP) / 10))
 
-void displayInit(void);
+#define PRINT(X) RA8875_textWrite(X, sizeof(X)-1)
+
+#define DISP_MODE_HOME      0
+#define DISP_MODE_UTIL      1
+#define DISP_MODE_SETTIME   2
+
+#define ACTIVE_TIME_10YR    0
+#define ACTIVE_TIME_YEAR    1
+#define ACTIVE_TIME_10MNTH  2
+#define ACTIVE_TIME_MONTH   3
+#define ACTIVE_TIME_10DAY   4
+#define ACTIVE_TIME_DAY     5
+#define ACTIVE_TIME_10HR    6
+#define ACTIVE_TIME_HOUR    7
+#define ACTIVE_TIME_10MIN   8
+#define ACTIVE_TIME_MINUTE  9
+#define ACTIVE_TIME_10SEC   10
+#define ACTIVE_TIME_SECOND  11
+
+unsigned char activeTimeChar = ACTIVE_TIME_10YR; 
+
+unsigned char displayInit(void);
 void drawHomeScreen(void);
 void drawTemplate(void);
 void drawUtilScreen(void);
 void drawGrid(void);
 unsigned int tempToPixel(unsigned char temp);
 void plotTemp(unsigned int x, unsigned char temp);
-void atoi(unsigned char val, char* dest, unsigned char zeroPad);
+void itoa(unsigned char val, char* dest, unsigned char zeroPad);
+void setDisplayMode(unsigned char newMode);
+void setSleep(unsigned char sleep);
+void drawProspectiveTime(void);
+void drawTime(void);
+void incrementActiveChar(void);
+void decrementActiveChar(void);
+
+unsigned char currentDisplayMode = DISP_MODE_HOME;
+unsigned char isSleep = FALSE;
 
 #endif	/* XC_HEADER_TEMPLATE_H */
 
