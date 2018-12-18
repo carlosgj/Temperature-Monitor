@@ -96,7 +96,7 @@ void init(void) {
 
 void run(void) {
     LATCbits.LATC0 = !LATCbits.LATC0;
-    setTime(0, 42, 20, 30, 11, 18);
+    //setTime(0, 42, 20, 30, 11, 18);
     readAll();
     unsigned char foo = readReg(REG_CONTROL);
     foo = readReg(REG_CONTROL_STAT);
