@@ -9,10 +9,11 @@
 #define FOOTER_LEVEL 445
 #define MIN_GRAPH_TEMP 30
 #define MAX_GRAPH_TEMP 110
-#define GRAPH_H_MARGIN 30
+#define GRAPH_H_MARGIN 35
 #define GRAPH_BOTTOM_MARGIN 40
 #define GRAPH_V_PIXELS ((FOOTER_LEVEL-GRAPH_BOTTOM_MARGIN)-(HEADER_LEVEL+10))
 #define GRAPH_RIGHT (WIDTH - GRAPH_H_MARGIN)
+#define GRAPH_WIDTH (WIDTH-(2*GRAPH_H_MARGIN))
 #define MENU_TEXT_Y (HEIGHT-34)
 
 //10-degree interval on graph
@@ -48,7 +49,7 @@ void drawTemplate(void);
 void drawUtilScreen(void);
 void drawGrid(void);
 unsigned int tempToPixel(unsigned char temp);
-void plotTemp(unsigned int x, unsigned char temp);
+void plotTempPoint(unsigned int x, unsigned char temp);
 void itoa(unsigned char val, char* dest, unsigned char zeroPad);
 void setDisplayMode(unsigned char newMode);
 void setSleep(unsigned char sleep);
@@ -56,6 +57,7 @@ void drawProspectiveTime(void);
 void drawTime(void);
 void incrementActiveChar(void);
 void decrementActiveChar(void);
+void clearPlot(void);
 
 unsigned char currentDisplayMode = DISP_MODE_HOME;
 unsigned char isSleep = FALSE;

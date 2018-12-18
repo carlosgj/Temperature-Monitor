@@ -122,17 +122,8 @@ unsigned char init(void) {
 
     SPIInit();
 
-    //if (displayInit()) {
-    //    initError = TRUE;
-    //}
-
-    radioStatus = RFM69_initialize(0xDE);
-    if (radioStatus == 1) {
-        RFM69_setMode(RF69_MODE_RX);
-        //PRINT("Radio initialized...\n");
-    } else {
-        //PRINT("Radio error!");
-    //    initError = TRUE;
+    if (displayInit()) {
+        initError = TRUE;
     }
 
     //Set up buttons
@@ -158,23 +149,28 @@ unsigned char init(void) {
 }
 
 void run(void) {
-    //updateButtons();
-    //handleButtonActions();
+    if(ms_count%100==0){
+        updateButtons();
+        handleButtonActions();
+    }
     //drawHomeScreen();
-    
+    if(currentDisplayMode == DISP_MODE_HOME && ms_count%2000 == 0){
+        //Draw temperature data to screen
+        plotTemp();
+    }
     pros_seconds.all = 0;
     pros_minutes.all = 0;
     pros_hours.all = 0;
     pros_date.all = 0;
     pros_month.all = 0;
     pros_years.all = 0;
-    setTime();
-    getTime();
-    drawTime();
-    unsigned char foo = readRTCReg(REG_CONTROL);
-    foo = readRTCReg(REG_CONTROL_STAT);
-    readAll();
-    __delay_ms(1000);
+    //setTime();
+    //getTime();
+    //drawTime();
+    //unsigned char foo = readRTCReg(REG_CONTROL);
+    //foo = readRTCReg(REG_CONTROL_STAT);
+    //readAll();
+    //__delay_ms(100);
 }
 
 void updateButtons(void) {
@@ -188,6 +184,16 @@ void updateButtons(void) {
     buttonState.B6 = !BUTTON6_PORT;
 
     buttonPressed.all = buttonState.all & ~oldButtonState.all;
+}
+
+void plotTemp(void){
+    clearPlot();
+    unsigned int i;
+        unsigned int j = 0;
+        for(i=GRAPH_H_MARGIN+2; i<(GRAPH_RIGHT-1); i+=2){
+            plotTempPoint(i, dummyData[j]);
+            j++;
+        }
 }
 
 void handleButtonActions(void) {

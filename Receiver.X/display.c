@@ -81,10 +81,10 @@ void drawHomeScreen(void) {
     }
 
     RA8875_textMode();
-    RA8875_textSetCursor(150, 10);
+    RA8875_textSetCursor(170, 10);
     RA8875_textEnlarge(2);
     RA8875_textTransparent(RA8875_WHITE);
-    RA8875_textWrite("Temperature Monitor", sizeof ("Temperature Monitor"));
+    PRINT("Temperature Monitor");
 
     RA8875_textEnlarge(1);
     RA8875_textSetCursor(45, MENU_TEXT_Y);
@@ -199,11 +199,15 @@ unsigned int tempToPixel(unsigned char temp) {
     temp -= MIN_GRAPH_TEMP;
     unsigned char scaling = (GRAPH_MAX_PIXEL / (MAX_GRAPH_TEMP - MIN_GRAPH_TEMP));
     unsigned char halfScaling = scaling / 2;
-    return (FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN)-(temp * scaling)-(isHalf * halfScaling);
+    return (FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN - 2)-(temp * scaling)-(isHalf * halfScaling);
 }
 
-void plotTemp(unsigned int x, unsigned char temp) {
+void plotTempPoint(unsigned int x, unsigned char temp) {
     RA8875_fillCircle(x, tempToPixel(temp), 1, RA8875_RED);
+}
+
+void clearPlot(void){
+    RA8875_HWfillRect(GRAPH_H_MARGIN+1, HEADER_LEVEL+10, GRAPH_WIDTH-2, GRAPH_V_PIXELS-1, RA8875_BLACK);
 }
 
 void setDisplayMode(unsigned char newMode) {

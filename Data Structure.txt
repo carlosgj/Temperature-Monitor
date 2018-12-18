@@ -41,3 +41,7 @@ Util screen:
     - Current temp
 
 Store current EEPROM page in PIC EEPROM
+
+Plot scaling:
+    Year: One day per 2 pixels
+    
