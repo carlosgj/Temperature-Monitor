@@ -3,20 +3,20 @@
 
 void writeRTCReg(unsigned char address, unsigned char data){
     address |= 0b10000000; //Set W bit
-    RTC_CS_LAT = FALSE;
+    RTC_CS_LAT = TRUE;
     SPI2Transfer(address);
     SPI2Transfer(data);
-    RTC_CS_LAT = TRUE;
+    RTC_CS_LAT = FALSE;
 }
 
 unsigned char readRTCReg(unsigned char address){
     address &= 0b01111111; //Clear W bit
-    RTC_CS_LAT = FALSE;
+    RTC_CS_LAT = TRUE;
     //asm("NOP");
     SPI2Transfer(address);
     //asm("NOP");
     unsigned char result = SPI2Transfer(0);
-    RTC_CS_LAT = TRUE;
+    RTC_CS_LAT = FALSE;
     return result;
 }
 
@@ -59,9 +59,9 @@ void setTime(void){
     writeRTCReg(REG_MONTH, pros_month.all);
     writeRTCReg(REG_YEAR, pros_years.all);
     //Clear OSF flag
-    unsigned char oldStat = readRTCReg(REG_CONTROL_STAT);
+    unsigned char oldStat = readRTCReg(REG_STAT);
     oldStat &= 0b01111111;
-    writeRTCReg(REG_CONTROL_STAT, oldStat);
+    writeRTCReg(REG_STAT, oldStat);
 }
 
 void readAll(void){

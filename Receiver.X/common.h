@@ -20,5 +20,7 @@ unsigned char currentMonth = 0xff;
 unsigned char currentDay = 0xff;
 unsigned char currentHour = 0xff;
 
+unsigned char firstRun = TRUE;
+
 #endif	/* XC_HEADER_TEMPLATE_H */
 

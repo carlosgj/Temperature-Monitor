@@ -149,12 +149,12 @@ unsigned char init(void) {
             initError = TRUE;
         }
     }
-    fillExtMemPage(0);
-    __delay_ms(10);
-    dumpExtMemPage(0);
-    while(TRUE){
+    //fillExtMemPage(0);
+    //__delay_ms(10);
+    //dumpExtMemPage(0);
+    //while(TRUE){
         
-    }
+    //}
     
     //Set up buttons
     BUTTON1_TRIS = INPUT;
@@ -197,10 +197,14 @@ void run(void) {
     //setTime();
     //getTime();
     //drawTime();
-    //unsigned char foo = readRTCReg(REG_CONTROL);
-    //foo = readRTCReg(REG_CONTROL_STAT);
+    unsigned char foo = readRTCReg(REG_CONTROL);
+    foo = readRTCReg(REG_STAT);
     //readAll();
-    //__delay_ms(100);
+    writeRTCReg(REG_CONTROL, 0b10000100); //Enable write
+    foo = readRTCReg(REG_CONTROL);
+    writeRTCReg(REG_CONTROL, 0b00000100); //Enable oscillator
+    foo = readRTCReg(REG_CONTROL);
+    __delay_ms(100);
 }
 
 void updateButtons(void) {

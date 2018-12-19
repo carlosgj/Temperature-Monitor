@@ -14,8 +14,8 @@
 #define REG_MONTH           0x05
 #define REG_YEAR            0x06
 
-#define REG_CONTROL         0x0e
-#define REG_CONTROL_STAT    0x0f
+#define REG_CONTROL         0x0f
+#define REG_STAT    0x10
 
 union bcd {
     unsigned char all;

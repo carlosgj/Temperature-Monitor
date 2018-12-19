@@ -35,7 +35,7 @@ void SPIInit(){
     MEM2_CS_TRIS = OUTPUT;
     RFM69_CS_TRIS = OUTPUT;
     
-    RTC_CS_LAT = TRUE;
+    RTC_CS_LAT = FALSE;
     MEM1_CS_LAT = TRUE;
     MEM2_CS_LAT = TRUE;
     RFM69_CS_LAT = TRUE;
@@ -49,7 +49,7 @@ void SPIInit(){
     RD4PPS = 0x12; //MSSP2 MOSI on D4
     
     SSP2STATbits.SMP = 0;
-    SSP2STATbits.CKE = 1;
+    SSP2STATbits.CKE = 0;
     SSP2CON1bits.CKP = 0;
     SSP2CON1bits.SSPM = 0b0010; //Fosc/64
     SSP2CON3bits.BOEN = TRUE;
