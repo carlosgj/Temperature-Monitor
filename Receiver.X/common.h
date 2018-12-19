@@ -13,5 +13,12 @@
 
 unsigned int ms_count=0;
 
+unsigned int current_EEPROM_page = 0xffff;
+
+unsigned char currentYear = 0xff;
+unsigned char currentMonth = 0xff;
+unsigned char currentDay = 0xff;
+unsigned char currentHour = 0xff;
+
 #endif	/* XC_HEADER_TEMPLATE_H */
 

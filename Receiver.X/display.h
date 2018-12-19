@@ -2,6 +2,7 @@
 #define	DISPLAY_H
 
 #include <xc.h> 
+#include "Adafruit_RA8875.h"
 
 #define WIDTH 800
 #define HEIGHT 480
@@ -27,6 +28,7 @@
 #define DISP_MODE_HOME      0
 #define DISP_MODE_UTIL      1
 #define DISP_MODE_SETTIME   2
+#define DISP_MODE_VERIFY_RESET  3
 
 #define ACTIVE_TIME_10YR    0
 #define ACTIVE_TIME_YEAR    1
@@ -47,10 +49,13 @@ unsigned char displayInit(void);
 void drawHomeScreen(void);
 void drawTemplate(void);
 void drawUtilScreen(void);
+void drawVerifyResetScreen(void);
 void drawGrid(void);
 unsigned int tempToPixel(unsigned char temp);
 void plotTempPoint(unsigned int x, unsigned char temp);
 void itoa(unsigned char val, char* dest, unsigned char zeroPad);
+void itoh8(unsigned char val, char* dest);
+void itoh16(unsigned int val, char* dest);
 void setDisplayMode(unsigned char newMode);
 void setSleep(unsigned char sleep);
 void drawProspectiveTime(void);

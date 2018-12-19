@@ -77,6 +77,7 @@
 #include "RFM69registers.h"
 #include "Adafruit_RA8875.h"
 #include "display.h"
+#include "memory.h"
 
 void main(void) {
     if (!init()) {
@@ -84,10 +85,10 @@ void main(void) {
         while (1) {
             run();
         }
-    }
-    else{
-        while(TRUE){
-            
+    } else {
+        PRINT("Initialization error. System halted.");
+        while (TRUE) {
+
         }
     }
 }
@@ -126,6 +127,35 @@ unsigned char init(void) {
         initError = TRUE;
     }
 
+    //Initialize RTC & get current timestamp
+    //DEBUG CODE!
+    currentYear = 18;
+    currentMonth = 12;
+    currentDay = 18;
+    currentHour = 18;
+
+    //Verify that current date has been loaded
+    if (currentYear == 0xff || currentMonth == 0xff ||
+            currentDay == 0xff || currentHour == 0xff) {
+        PRINT("Current date not correctly loaded from RTC!\n");
+        initError = TRUE;
+    }
+
+
+    //Bootstrap memory
+    if (!initError) {
+        if (loadEEPROMPageIndex()) {
+            PRINT("Data memory setup failed!\n");
+            initError = TRUE;
+        }
+    }
+    fillExtMemPage(0);
+    __delay_ms(10);
+    dumpExtMemPage(0);
+    while(TRUE){
+        
+    }
+    
     //Set up buttons
     BUTTON1_TRIS = INPUT;
     BUTTON2_TRIS = INPUT;
@@ -149,12 +179,12 @@ unsigned char init(void) {
 }
 
 void run(void) {
-    if(ms_count%100==0){
+    if (ms_count % 100 == 0) {
         updateButtons();
         handleButtonActions();
     }
     //drawHomeScreen();
-    if(currentDisplayMode == DISP_MODE_HOME && ms_count%2000 == 0){
+    if (currentDisplayMode == DISP_MODE_HOME && ms_count % 2000 == 0) {
         //Draw temperature data to screen
         plotTemp();
     }
@@ -186,14 +216,14 @@ void updateButtons(void) {
     buttonPressed.all = buttonState.all & ~oldButtonState.all;
 }
 
-void plotTemp(void){
+void plotTemp(void) {
     clearPlot();
     unsigned int i;
-        unsigned int j = 0;
-        for(i=GRAPH_H_MARGIN+2; i<(GRAPH_RIGHT-1); i+=2){
-            plotTempPoint(i, dummyData[j]);
-            j++;
-        }
+    unsigned int j = 0;
+    for (i = GRAPH_H_MARGIN + 2; i < (GRAPH_RIGHT - 1); i += 2) {
+        plotTempPoint(i, tempData[j]);
+        j++;
+    }
 }
 
 void handleButtonActions(void) {
@@ -261,6 +291,10 @@ void handleButtonActions(void) {
                 }
                 drawProspectiveTime();
                 break;
+            case DISP_MODE_VERIFY_RESET:
+                //"No" selected
+                setDisplayMode(DISP_MODE_HOME);
+                break;
         }
         return;
     }
@@ -280,6 +314,11 @@ void handleButtonActions(void) {
                     activeTimeChar++;
                 }
                 drawProspectiveTime();
+                break;
+            case DISP_MODE_VERIFY_RESET:
+                //"Yes" selected
+                resetEEPROMPageIndex();
+                setDisplayMode(DISP_MODE_HOME);
                 break;
         }
         return;
@@ -309,6 +348,7 @@ void handleButtonActions(void) {
                 setSleep(TRUE);
                 break;
             case DISP_MODE_UTIL:
+                setDisplayMode(DISP_MODE_VERIFY_RESET);
                 break;
             case DISP_MODE_SETTIME:
                 //Decrement

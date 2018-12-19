@@ -102,6 +102,7 @@ void drawHomeScreen(void) {
 }
 
 void drawUtilScreen(void) {
+    char uintStr[4];
     drawTemplate();
     RA8875_textMode();
     RA8875_textSetCursor(250, 10);
@@ -125,7 +126,31 @@ void drawUtilScreen(void) {
 
     RA8875_textEnlarge(0);
     RA8875_textSetCursor(0, HEADER_LEVEL + 10);
-    RA8875_textWrite("Current EEPROM page: ", sizeof ("Current EEPROM page: "));
+    PRINT("Current EEPROM page: 0x");
+    itoh16(current_EEPROM_page, uintStr);
+    RA8875_textWrite(uintStr, 4);
+    PRINT("\n");
+    
+}
+
+void drawVerifyResetScreen(){
+    drawTemplate();
+    RA8875_textMode();
+    RA8875_textSetCursor(250, 10);
+    RA8875_textEnlarge(2);
+    RA8875_textTransparent(RA8875_WHITE);
+    PRINT("Verify Reset");
+
+    RA8875_textEnlarge(1);
+    RA8875_textSetCursor(300, MENU_TEXT_Y);
+    PRINT("No");
+    RA8875_textSetCursor(435, MENU_TEXT_Y);
+    PRINT("Yes");
+
+    RA8875_textSetCursor(1, HEADER_LEVEL + 10);
+    PRINT("WARNING! This will reset EEPROM page counter.");
+    PRINT("Stored data will be lost.");
+    PRINT("Continue?");
 }
 
 void drawSetTimeScreen() {
@@ -149,6 +174,61 @@ void drawSetTimeScreen() {
     PRINT("\x18");
     RA8875_textSetCursor(695, MENU_TEXT_Y);
     PRINT("\x19");
+}
+
+
+void itoh8(unsigned char val, char* dest) {
+    unsigned char thisDigit;
+    thisDigit = val / 0x10;
+    if(thisDigit < 10){
+        dest[0] = (char) (thisDigit + 48);
+    }
+    else{
+        dest[0] = (char) (thisDigit + 55);
+    }
+    
+    thisDigit = val % 0x10;
+    if(thisDigit < 10){
+        dest[1] = (char) (thisDigit + 48);
+    }
+    else{
+        dest[1] = (char) (thisDigit + 55);
+    }
+}
+
+void itoh16(unsigned int val, char* dest) {
+    unsigned int thisDigit;
+    thisDigit = val / 0x1000;
+    if(thisDigit < 10){
+        dest[0] = (char) (thisDigit + 48);
+    }
+    else{
+        dest[0] = (char) (thisDigit + 55);
+    }
+    
+    thisDigit = (val / 0x100) % 0x10;
+    if(thisDigit < 10){
+        dest[1] = (char) (thisDigit + 48);
+    }
+    else{
+        dest[1] = (char) (thisDigit + 55);
+    }
+    
+    thisDigit = (val / 0x10) % 0x10;
+    if(thisDigit < 10){
+        dest[2] = (char) (thisDigit + 48);
+    }
+    else{
+        dest[2] = (char) (thisDigit + 55);
+    }
+    
+    thisDigit = val % 0x10;
+    if(thisDigit < 10){
+        dest[3] = (char) (thisDigit + 48);
+    }
+    else{
+        dest[3] = (char) (thisDigit + 55);
+    }
 }
 
 void itoa(unsigned char val, char* dest, unsigned char zeroPad) {
@@ -222,6 +302,10 @@ void setDisplayMode(unsigned char newMode) {
             break;
         case DISP_MODE_SETTIME:
             drawSetTimeScreen();
+            currentDisplayMode = newMode;
+            break;
+        case DISP_MODE_VERIFY_RESET:
+            drawVerifyResetScreen();
             currentDisplayMode = newMode;
             break;
         default:
