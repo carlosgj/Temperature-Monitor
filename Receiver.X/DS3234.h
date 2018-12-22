@@ -21,7 +21,7 @@ union bcd {
     unsigned char all;
     struct{
         unsigned ones   :4;
-        unsigned tens   :4;
+        unsigned tens   :3;
     };
 };
 
@@ -35,28 +35,18 @@ union hour_t{
     };
 };
 
-union month_t{
-    unsigned char all;
-    struct{
-        unsigned ones       :4;
-        unsigned tens       :1;
-        unsigned ZERO       :2;
-        unsigned century    :1;
-    };
-};
-
 union bcd seconds_reg;
 union bcd minutes_reg;
 union hour_t hours_reg;
 union bcd date_reg;
-union month_t month_reg;
+union bcd month_reg;
 union bcd years_reg;
 
 union bcd pros_seconds;
 union bcd pros_minutes;
 union hour_t pros_hours;
 union bcd pros_date;
-union month_t pros_month;
+union bcd pros_month;
 union bcd pros_years;
 
 unsigned char allRegs[7];

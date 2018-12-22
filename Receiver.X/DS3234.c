@@ -2,6 +2,7 @@
 #include "DS3234.h"
 
 void writeRTCReg(unsigned char address, unsigned char data){
+    setSSP2CKE(FALSE);
     address |= 0b10000000; //Set W bit
     RTC_CS_LAT = TRUE;
     SPI2Transfer(address);
@@ -10,6 +11,7 @@ void writeRTCReg(unsigned char address, unsigned char data){
 }
 
 unsigned char readRTCReg(unsigned char address){
+    setSSP2CKE(FALSE);
     address &= 0b01111111; //Clear W bit
     RTC_CS_LAT = TRUE;
     //asm("NOP");
@@ -53,15 +55,20 @@ void formatTime(unsigned char seconds, unsigned char minutes, unsigned char hour
 //Writes the prospective time (in pros_*) to RTC
 void setTime(void){
     writeRTCReg(REG_SECOND, pros_seconds.all);
+    __delay_ms(1);
     writeRTCReg(REG_MINUTE, pros_minutes.all);
+    __delay_ms(1);
     writeRTCReg(REG_HOUR, pros_hours.all);
+    __delay_ms(1);
     writeRTCReg(REG_DATE, pros_date.all);
+    __delay_ms(1);
     writeRTCReg(REG_MONTH, pros_month.all);
+    __delay_ms(1);
     writeRTCReg(REG_YEAR, pros_years.all);
     //Clear OSF flag
-    unsigned char oldStat = readRTCReg(REG_STAT);
-    oldStat &= 0b01111111;
-    writeRTCReg(REG_STAT, oldStat);
+    //unsigned char oldStat = readRTCReg(REG_STAT);
+    //oldStat &= 0b01111111;
+    //writeRTCReg(REG_STAT, oldStat);
 }
 
 void readAll(void){

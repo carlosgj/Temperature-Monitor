@@ -127,6 +127,14 @@ unsigned char init(void) {
         initError = TRUE;
     }
 
+    //If we can't even initialize the display, no debug information can be output.
+    //So, hang
+    if (initError) {
+        while (TRUE) {
+
+        }
+    }
+
     //Initialize RTC & get current timestamp
     //DEBUG CODE!
     currentYear = 18;
@@ -146,16 +154,17 @@ unsigned char init(void) {
     if (!initError) {
         if (loadEEPROMPageIndex()) {
             PRINT("Data memory setup failed!\n");
-            initError = TRUE;
+            //initError = TRUE;
         }
     }
     //fillExtMemPage(0);
     //__delay_ms(10);
     //dumpExtMemPage(0);
-    //while(TRUE){
-        
-    //}
-    
+    __delay_ms(500);
+    __delay_ms(500);
+    __delay_ms(500);
+    __delay_ms(500);
+
     //Set up buttons
     BUTTON1_TRIS = INPUT;
     BUTTON2_TRIS = INPUT;
@@ -179,32 +188,40 @@ unsigned char init(void) {
 }
 
 void run(void) {
-    if (ms_count % 100 == 0) {
+    if (fast_tasks_timer == 0) {
+        fast_tasks_timer = FAST_TASKS_RATE;
+        getTime();
+        drawTime();
         updateButtons();
         handleButtonActions();
     }
     //drawHomeScreen();
-    if (currentDisplayMode == DISP_MODE_HOME && ms_count % 2000 == 0) {
+    if(slow_tasks_timer == 0){
+        slow_tasks_timer = SLOW_TASKS_RATE;
+        if (currentDisplayMode == DISP_MODE_HOME) {
         //Draw temperature data to screen
         plotTemp();
     }
-    pros_seconds.all = 0;
-    pros_minutes.all = 0;
-    pros_hours.all = 0;
-    pros_date.all = 0;
-    pros_month.all = 0;
-    pros_years.all = 0;
+    }
+    
+    fast_tasks_timer--;
+    slow_tasks_timer--;
+    
+    //pros_seconds.all = 0;
+    //pros_minutes.all = 0;
+    //pros_hours.all = 0;
+    //pros_date.all = 0;
+    //pros_month.all = 0;
+    //pros_years.all = 0;
     //setTime();
-    //getTime();
-    //drawTime();
-    unsigned char foo = readRTCReg(REG_CONTROL);
-    foo = readRTCReg(REG_STAT);
+    //unsigned char foo = readRTCReg(REG_CONTROL);
+    //foo = readRTCReg(REG_STAT);
     //readAll();
-    writeRTCReg(REG_CONTROL, 0b10000100); //Enable write
-    foo = readRTCReg(REG_CONTROL);
-    writeRTCReg(REG_CONTROL, 0b00000100); //Enable oscillator
-    foo = readRTCReg(REG_CONTROL);
-    __delay_ms(100);
+    //writeRTCReg(REG_CONTROL, 0b10000100); //Enable write
+    //foo = readRTCReg(REG_CONTROL);
+    //writeRTCReg(REG_CONTROL, 0b00000100); //Enable oscillator
+    //foo = readRTCReg(REG_CONTROL);
+    __delay_ms(1);
 }
 
 void updateButtons(void) {
@@ -274,6 +291,7 @@ void handleButtonActions(void) {
                 break;
             case DISP_MODE_SETTIME:
                 setTime();
+                setDisplayMode(DISP_MODE_HOME);
                 break;
         }
         return;
@@ -365,7 +383,7 @@ void handleButtonActions(void) {
 
     //If a button was pressed, do the action, then delay to ignore bounces
     if (buttonPressed.all != 0) {
-        __delay_ms(400);
+        __delay_ms(300);
     }
 }
 

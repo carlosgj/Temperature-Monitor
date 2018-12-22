@@ -81,3 +81,16 @@ unsigned char SPI1Transfer(unsigned char data){
     }
     return result;
 }
+
+void setSSP2CKE(unsigned char newVal){
+    unsigned char oldVal = SSP2STATbits.CKE;
+    if(newVal == oldVal){
+        return;
+    }
+    else{
+        SSP2CON1bits.SSPEN = FALSE;
+        SSP2STATbits.CKE = newVal;
+        SSP2CON1bits.SSPEN = TRUE;
+        __delay_us(100);
+    }
+    }

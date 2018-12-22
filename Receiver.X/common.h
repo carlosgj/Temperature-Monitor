@@ -12,6 +12,7 @@
 #define _XTAL_FREQ 64000000
 
 unsigned int ms_count=0;
+unsigned int sec_count =0;
 
 unsigned int current_EEPROM_page = 0xffff;
 

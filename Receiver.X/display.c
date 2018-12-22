@@ -11,9 +11,7 @@ unsigned char displayInit(void) {
     RA8875_reset();
     __delay_ms(200);
     if (!RA8875_begin(RA8875_800x480)) {
-        while (TRUE) {
-
-        }
+        return TRUE;
     }
     RA8875_displayOn(TRUE);
     RA8875_SetGPIOX(TRUE); // Enable TFT - display enable tied to GPIOX

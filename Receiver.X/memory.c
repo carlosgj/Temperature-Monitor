@@ -32,6 +32,7 @@ unsigned char int_mem_read(unsigned int address){
 }
 
 void ext_mem_write(unsigned short long address, unsigned char val){
+    setSSP2CKE(TRUE);
     if((address & 0x20000) == 0){
         address &= 0x1ffff;
         //First enable write latch
@@ -68,6 +69,7 @@ void ext_mem_write(unsigned short long address, unsigned char val){
 }
 
 unsigned char ext_mem_read(unsigned short long address){
+    setSSP2CKE(TRUE);
     unsigned char result = 0xaa;
     if((address & 0x20000) == 0){
         address &= 0x1ffff;

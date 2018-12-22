@@ -26,8 +26,8 @@
 #define MEM2_CS_LAT         LATCbits.LATC6
 
 
-#define RTC_CS_TRIS         TRISDbits.TRISD5
-#define RTC_CS_LAT          LATDbits.LATD5
+#define RTC_CS_TRIS         TRISDbits.TRISD2
+#define RTC_CS_LAT          LATDbits.LATD2
 
 #define BUTTON1_TRIS        TRISCbits.TRISC0
 #define BUTTON2_TRIS        TRISCbits.TRISC1
