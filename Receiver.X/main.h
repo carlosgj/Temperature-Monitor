@@ -4,7 +4,7 @@
 #include <xc.h> // include processor files - each processor file is guarded.  
 
 #define FAST_TASKS_RATE 100
-#define SLOW_TASKS_RATE 2000
+#define SLOW_TASKS_RATE 10000
 
 unsigned char init(void);
 void run(void);

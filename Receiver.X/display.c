@@ -4,6 +4,7 @@
 #include "display.h"
 #include "pindef.h"
 #include "DS3234.h"
+#include "memory.h"
 
 unsigned char displayInit(void) {
     DISP_RST_TRIS = OUTPUT;
@@ -113,8 +114,8 @@ void drawUtilScreen(void) {
     PRINT("Home");
     RA8875_textSetCursor(175, MENU_TEXT_Y);
     PRINT("Time");
-    RA8875_textSetCursor(300, MENU_TEXT_Y);
-    PRINT("Null");
+    RA8875_textSetCursor(280, MENU_TEXT_Y);
+    PRINT("RTC FS");
     RA8875_textSetCursor(435, MENU_TEXT_Y);
     PRINT("Null");
     RA8875_textSetCursor(570, MENU_TEXT_Y);
@@ -125,7 +126,7 @@ void drawUtilScreen(void) {
     RA8875_textEnlarge(0);
     RA8875_textSetCursor(0, HEADER_LEVEL + 10);
     PRINT("Current EEPROM page: 0x");
-    itoh16(current_EEPROM_page, uintStr);
+    itoh16(currentEEPROMPage, uintStr);
     RA8875_textWrite(uintStr, 4);
     PRINT("\n");
     
@@ -325,7 +326,7 @@ void setSleep(unsigned char sleep) {
 void drawTime(void) {
     char temp[3];
     RA8875_textMode();
-    RA8875_textSetCursor(500, 10);
+    RA8875_textSetCursor(620, 10);
     RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
     RA8875_textEnlarge(0);
     PRINT("20");
@@ -730,5 +731,22 @@ void decrementActiveChar(void) {
                 pros_seconds.ones--;
             }
             break;
+    }
+}
+
+void drawTemp(void){
+    char temp[3];
+    RA8875_textMode();
+    RA8875_textSetCursor(10, 10);
+    RA8875_textColor(RA8875_WHITE, RA8875_BLACK);
+    RA8875_textEnlarge(0);
+    itoa(currentTemperatureByte>>1, temp, FALSE);
+    RA8875_textWrite(temp, 3);
+    RA8875_textWrite(".", 1);
+    if(currentTemperatureByte & 1){
+        RA8875_textWrite("5", 1);
+    }
+    else{
+        RA8875_textWrite("0", 1);
     }
 }

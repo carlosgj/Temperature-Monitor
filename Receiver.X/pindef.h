@@ -3,8 +3,8 @@
 
 #include <xc.h> // include processor files - each processor file is guarded.  
 
-#define RFM69_CS_TRIS       TRISCbits.TRISC5
-#define RFM69_CS_LAT        LATCbits.LATC5
+#define THERM_TRIS          TRISCbits.TRISC5
+#define THERM_ANSEL         ANSELCbits.ANSELC5
 
 #define SCK1_TRIS           TRISCbits.TRISC3
 #define MOSI1_TRIS          TRISBbits.TRISB3

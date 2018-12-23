@@ -57,6 +57,7 @@ void formatTime(unsigned char seconds, unsigned char minutes, unsigned char hour
 void getTime(void);
 void setTime(void);
 void readAll(void);
+void RTCOscRestart(void);
 
 #endif	/* XC_HEADER_TEMPLATE_H */
 

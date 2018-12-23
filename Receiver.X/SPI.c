@@ -33,12 +33,10 @@ void SPIInit(){
     RTC_CS_TRIS = OUTPUT;
     MEM1_CS_TRIS = OUTPUT;
     MEM2_CS_TRIS = OUTPUT;
-    RFM69_CS_TRIS = OUTPUT;
     
     RTC_CS_LAT = FALSE;
     MEM1_CS_LAT = TRUE;
     MEM2_CS_LAT = TRUE;
-    RFM69_CS_LAT = TRUE;
     
     //Set up inputs
     SSP2CLKPPS = 0b00001001; //SSP2 clk in on B1

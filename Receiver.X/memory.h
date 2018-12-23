@@ -3,8 +3,8 @@
 
 #include <xc.h> 
 
-#define DISABLE_EXTERNAL_MEMORY_WRITE
-//#define DISABLE_INTERNAL_MEMORY_WRITE
+//#define DISABLE_EXTERNAL_MEMORY_WRITE
+#define DISABLE_INTERNAL_MEMORY_WRITE
 
 #define INTERNAL_EEPROM_PAGE_INDEX_LOCATION 0
 #define INTERNAL_EEPROM_PAGE_INDEX_COMPLEMENT_LOCATION 2
@@ -28,6 +28,9 @@ void setupEEPROMPage(unsigned int pageIndex, unsigned char year, unsigned char m
 unsigned int formatDateToDatestamp(unsigned char year, unsigned char month, unsigned char day);
 void dumpExtMemPage(unsigned int page); 
 void fillExtMemPage(unsigned int page);
+void finishEEPROMPage(unsigned int pageIndex);
+
+
 unsigned int currentEEPROMPage = 0xffff;
 
 #endif	/* XC_HEADER_TEMPLATE_H */

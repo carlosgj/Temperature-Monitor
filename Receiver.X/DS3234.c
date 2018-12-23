@@ -29,6 +29,11 @@ void getTime(){
     date_reg.all = readRTCReg(REG_DATE);
     month_reg.all = readRTCReg(REG_MONTH);
     years_reg.all = readRTCReg(REG_YEAR);
+    
+    currentYear = (years_reg.tens * 10)+years_reg.ones;
+    currentMonth = (month_reg.tens * 10)+month_reg.ones;
+    currentDay = (date_reg.tens*10)+date_reg.ones;
+    currentHour = (hours_reg.tens*10)+hours_reg.ones;
 }
 
 void formatTime(unsigned char seconds, unsigned char minutes, unsigned char hours, unsigned char date, unsigned char month, unsigned int year){
@@ -79,4 +84,13 @@ void readAll(void){
         allRegs[i] = SPI2Transfer(0);
     }
     RTC_CS_LAT = TRUE;
+}
+
+
+void RTCOscRestart(void){
+    writeRTCReg(REG_CONTROL, 0b10000100); //Enable write
+    //foo = readRTCReg(REG_CONTROL);
+    writeRTCReg(REG_CONTROL, 0b10000100); //Disable oscillator
+    __delay_ms(10);
+    writeRTCReg(REG_CONTROL, 0b00000100); //Enable oscillator
 }

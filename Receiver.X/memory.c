@@ -32,6 +32,7 @@ unsigned char int_mem_read(unsigned int address){
 }
 
 void ext_mem_write(unsigned short long address, unsigned char val){
+#ifndef DISABLE_EXTERNAL_MEMORY_WRITE
     setSSP2CKE(TRUE);
     if((address & 0x20000) == 0){
         address &= 0x1ffff;
@@ -65,6 +66,7 @@ void ext_mem_write(unsigned short long address, unsigned char val){
         SPI2Transfer(val);
         MEM2_CS_LAT = TRUE;
     }
+#endif
     __delay_ms(7);
 }
 
@@ -169,7 +171,7 @@ unsigned char loadEEPROMPageIndex(void){
     //Check if datestamp matches current datestamp
     unsigned int pagedatestamp = (ext_mem_read(pageheaderaddress) << 8) | ext_mem_read(pageheaderaddress+1);
     pagedatestamp &= 0x7f; //Zero out first bit
-    current_EEPROM_page = intmemindex;
+    currentEEPROMPage = intmemindex;
     if(pagedatestamp == currentDatestamp){
         return FALSE;
     }
@@ -187,11 +189,31 @@ unsigned char loadEEPROMPageIndex(void){
 }
 
 void incrementEEPROMPageIndex(void){
+    unsigned int newEEPROMPage = currentEEPROMPage;
     //Check if we need to roll over
-    //Change value in RAM
+    //1023 total pages of memory
+    if(newEEPROMPage == 1023){
+        newEEPROMPage = 0;
+    }
+    else{
+        newEEPROMPage++;
+    }
+    
     //Write to internal EEPROM
+    unsigned int newEEPROMPage_c = ~newEEPROMPage;
+    int_mem_write(INTERNAL_EEPROM_PAGE_INDEX_LOCATION, (unsigned char)(newEEPROMPage>>8));
+    int_mem_write(INTERNAL_EEPROM_PAGE_INDEX_LOCATION+1, (unsigned char)(newEEPROMPage));
+    int_mem_write(INTERNAL_EEPROM_PAGE_INDEX_COMPLEMENT_LOCATION, (unsigned char)(newEEPROMPage_c>>8));
+    int_mem_write(INTERNAL_EEPROM_PAGE_INDEX_COMPLEMENT_LOCATION+1, (unsigned char)(newEEPROMPage_c));
+    
     //Setup new page
+    setupEEPROMPage(newEEPROMPage, currentYear, currentMonth, currentDay);   
+    
     //close out old page, if necessary
+    finishEEPROMPage(currentEEPROMPage);
+    
+    //Change value in RAM
+    currentEEPROMPage = newEEPROMPage; 
 }
 
 void resetEEPROMPageIndex(void){
@@ -206,7 +228,7 @@ void resetEEPROMPageIndex(void){
     setupEEPROMPage(newPageIndex, currentYear, currentMonth, currentDay);
     
     //Change value in RAM
-    current_EEPROM_page = newPageIndex;
+    currentEEPROMPage = newPageIndex;
 }
 
 void setupEEPROMPage(unsigned int pageIndex, unsigned char year, unsigned char month, unsigned char day){
@@ -215,7 +237,7 @@ void setupEEPROMPage(unsigned int pageIndex, unsigned char year, unsigned char m
     unsigned short long pageheaderaddress = pageIndex << 8;
     pageheaderaddress &= 0x3ffff; //For safety, zero out leading 6 bits
     ext_mem_write(pageheaderaddress, ((unsigned char)(datestamp>>8))&0b01111111);
-    ext_mem_write(pageheaderaddress, (unsigned char)(datestamp & 0xff));
+    ext_mem_write(pageheaderaddress+1, (unsigned char)(datestamp & 0xff));
 }
 
 unsigned int formatDateToDatestamp(unsigned char year, unsigned char month, unsigned char day){
@@ -224,4 +246,28 @@ unsigned int formatDateToDatestamp(unsigned char year, unsigned char month, unsi
     result |= (((unsigned int)month & 0b00001111) << 5);
     result |= (day & 0b00011111);
     return result;
+}
+
+void finishEEPROMPage(unsigned int pageIndex){
+    unsigned int accumulator = 0;
+    unsigned short long addressPrefix = (pageIndex<<8);
+    unsigned char i;
+    unsigned char goodMeasurements = 0;
+    for(i=2; i<(240+2); i++){
+        unsigned char thisByte = ext_mem_read(addressPrefix | i);
+        if(thisByte != 0xff){
+            accumulator += thisByte;
+            goodMeasurements++;
+        }
+    }
+    accumulator /= goodMeasurements;
+    
+    ext_mem_write(addressPrefix | 254, (unsigned char)accumulator);
+    
+    //Compute checksum
+    unsigned char checksum = 0;
+    for(i=0; i<255; i++){
+        checksum ^= ext_mem_read(addressPrefix | i);
+    }
+    ext_mem_write(addressPrefix | 255, checksum);
 }

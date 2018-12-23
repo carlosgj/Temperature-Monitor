@@ -63,6 +63,7 @@ void drawTime(void);
 void incrementActiveChar(void);
 void decrementActiveChar(void);
 void clearPlot(void);
+void drawTemp(void);
 
 unsigned char currentDisplayMode = DISP_MODE_HOME;
 unsigned char isSleep = FALSE;

@@ -78,6 +78,7 @@
 #include "Adafruit_RA8875.h"
 #include "display.h"
 #include "memory.h"
+#include "therm.h"
 
 void main(void) {
     if (!init()) {
@@ -135,12 +136,18 @@ unsigned char init(void) {
         }
     }
 
+    //Initialize ADC
+    if(thermInit()){
+        initError = TRUE;
+    }
+    
     //Initialize RTC & get current timestamp
     //DEBUG CODE!
-    currentYear = 18;
-    currentMonth = 12;
-    currentDay = 18;
-    currentHour = 18;
+    //currentYear = 18;
+    //currentMonth = 12;
+    //currentDay = 18;
+    //currentHour = 18;
+    getTime();
 
     //Verify that current date has been loaded
     if (currentYear == 0xff || currentMonth == 0xff ||
@@ -148,18 +155,43 @@ unsigned char init(void) {
         PRINT("Current date not correctly loaded from RTC!\n");
         initError = TRUE;
     }
+    else{
+        char datetime[2];
+        PRINT("Date: 0x");
+        itoh8(years_reg.all, datetime);
+        RA8875_textWrite(datetime, 2);
+        PRINT("-0x");
+        itoh8(month_reg.all, datetime);
+        RA8875_textWrite(datetime, 2);
+        PRINT("-0x");
+        itoh8(date_reg.all, datetime);
+        RA8875_textWrite(datetime, 2);
+        PRINT(" 0x");
+        itoh8(hours_reg.all, datetime);
+        RA8875_textWrite(datetime, 2);
+        PRINT(":0x");
+        itoh8(minutes_reg.all, datetime);
+        RA8875_textWrite(datetime, 2);
+        PRINT(":0x");
+        itoh8(seconds_reg.all, datetime);
+        RA8875_textWrite(datetime, 2);
+        PRINT("\n");
+    }
 
 
     //Bootstrap memory
     if (!initError) {
         if (loadEEPROMPageIndex()) {
             PRINT("Data memory setup failed!\n");
-            //initError = TRUE;
+            initError = TRUE;
         }
     }
-    //fillExtMemPage(0);
-    //__delay_ms(10);
-    //dumpExtMemPage(0);
+    //setupEEPROMPage(0, currentYear, currentMonth, currentDay);
+    fillExtMemPage(0);
+    __delay_ms(10);
+    dumpExtMemPage(0);
+    
+    
     __delay_ms(500);
     __delay_ms(500);
     __delay_ms(500);
@@ -198,6 +230,8 @@ void run(void) {
     //drawHomeScreen();
     if(slow_tasks_timer == 0){
         slow_tasks_timer = SLOW_TASKS_RATE;
+        getTemperature();
+        drawTemp();
         if (currentDisplayMode == DISP_MODE_HOME) {
         //Draw temperature data to screen
         plotTemp();
@@ -214,7 +248,7 @@ void run(void) {
     //pros_month.all = 0;
     //pros_years.all = 0;
     //setTime();
-    //unsigned char foo = readRTCReg(REG_CONTROL);
+    unsigned char foo = readRTCReg(REG_CONTROL);
     //foo = readRTCReg(REG_STAT);
     //readAll();
     //writeRTCReg(REG_CONTROL, 0b10000100); //Enable write
@@ -303,6 +337,8 @@ void handleButtonActions(void) {
                 //Switch to past-month plot
                 break;
             case DISP_MODE_UTIL:
+                //Force start RTC
+                RTCOscRestart();
                 break;
             case DISP_MODE_SETTIME:
                 //Move cursor left
