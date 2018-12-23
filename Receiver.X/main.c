@@ -187,7 +187,8 @@ unsigned char init(void) {
         }
     }
     //setupEEPROMPage(0, currentYear, currentMonth, currentDay);
-    fillExtMemPage(0);
+    //fillExtMemPage(0);
+    //ext_mem_write(0x000005, 0xaa);
     __delay_ms(10);
     dumpExtMemPage(0);
     

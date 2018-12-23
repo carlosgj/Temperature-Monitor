@@ -170,13 +170,14 @@ unsigned char loadEEPROMPageIndex(void){
     pageheaderaddress &= 0x3ffff; //For safety, zero out leading 6 bits
     //Check if datestamp matches current datestamp
     unsigned int pagedatestamp = (ext_mem_read(pageheaderaddress) << 8) | ext_mem_read(pageheaderaddress+1);
-    pagedatestamp &= 0x7f; //Zero out first bit
+    pagedatestamp &= 0x7fff; //Zero out first bit
     currentEEPROMPage = intmemindex;
     if(pagedatestamp == currentDatestamp){
         return FALSE;
     }
     else{
         if(pagedatestamp < currentDatestamp){
+            PRINT("Incrementing EEPROM page...");
             incrementEEPROMPageIndex();
             return FALSE;
         }
@@ -225,7 +226,7 @@ void resetEEPROMPageIndex(void){
     int_mem_write(INTERNAL_EEPROM_PAGE_INDEX_COMPLEMENT_LOCATION+1, (unsigned char)(newPageIndex_c));
     
     //Setup new page
-    setupEEPROMPage(newPageIndex, currentYear, currentMonth, currentDay);
+    setupEEPROMPage(0, currentYear, currentMonth, currentDay);
     
     //Change value in RAM
     currentEEPROMPage = newPageIndex;
@@ -238,6 +239,10 @@ void setupEEPROMPage(unsigned int pageIndex, unsigned char year, unsigned char m
     pageheaderaddress &= 0x3ffff; //For safety, zero out leading 6 bits
     ext_mem_write(pageheaderaddress, ((unsigned char)(datestamp>>8))&0b01111111);
     ext_mem_write(pageheaderaddress+1, (unsigned char)(datestamp & 0xff));
+    unsigned char i;
+    for(i=2; i<255; i++){
+        ext_mem_write(pageheaderaddress+i, 0xff);
+    }
 }
 
 unsigned int formatDateToDatestamp(unsigned char year, unsigned char month, unsigned char day){
