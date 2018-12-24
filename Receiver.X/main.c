@@ -255,6 +255,25 @@ void run(void) {
                     collectDayData();
                     plotTemp(240);
                     break;
+                case GRAPH_MODE_WEEK:
+                    clearPlotXLabels();
+                    drawPlotWeekXLabels();
+                    collectWeekData();
+                    plotTemp(336);
+                    break;
+                case GRAPH_MODE_MONTH:
+                    clearPlotXLabels();
+                    drawPlotMonthXLabels();
+                    collectMonthData();
+                    plotTemp(360);
+                    break;
+                case GRAPH_MODE_YEAR:
+                    clearPlotXLabels();
+                    drawPlotYearXLabels();
+                    collectYearData();
+                    plotTemp(365);
+                    break;    
+                    
             }
     }
     }

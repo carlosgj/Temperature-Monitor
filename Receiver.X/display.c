@@ -274,10 +274,10 @@ unsigned int tempToPixel(unsigned char temp) {
     temp >>= 1;
     temp &= 0b01111111;
     if (temp < MIN_GRAPH_TEMP) {
-        return FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN;
+        return (FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN)-2;
     }
     if (temp > MAX_GRAPH_TEMP) {
-        return (FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN) -GRAPH_MAX_PIXEL;
+        return ((FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN) -GRAPH_MAX_PIXEL)-2;
     }
     temp -= MIN_GRAPH_TEMP;
     unsigned char scaling = (GRAPH_MAX_PIXEL / (MAX_GRAPH_TEMP - MIN_GRAPH_TEMP));
@@ -326,11 +326,70 @@ void drawPlotDayXLabels(void){
 }
 
 void drawPlotWeekXLabels(void){
-    
+    unsigned char month = currentMonth;
+    unsigned char day = currentDay;
+    unsigned int X = GRAPH_RIGHT-(currentHour);
+    unsigned char dayCount;
+    for(dayCount=0; dayCount < 7; dayCount ++){
+        RA8875_drawFastVLine(X, FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN, 3, RA8875_WHITE); //Tick
+        RA8875_textMode();
+        RA8875_textTransparent(RA8875_WHITE);
+        RA8875_textEnlarge(0);
+        char number[3];
+        RA8875_textSetCursor(X-10, (FOOTER_LEVEL-GRAPH_BOTTOM_MARGIN)+14);
+        itoa(day, number, TRUE);
+        RA8875_textWrite(number+1, 2);
+        
+        //96 pixels per day
+        X -= 96;
+        
+        if(day == 1){
+            if(month == 1){
+                month = 12;
+            }
+            else{
+                month--;
+            }
+            day = daysPerMonth[month];
+        }
+        else{
+            day --;
+        }
+    }
 }
 
 void drawPlotMonthXLabels(void){
-    
+    unsigned char month = currentMonth;
+    unsigned char day = currentDay;
+    unsigned int X = GRAPH_RIGHT-(currentHour);
+    unsigned char dayCount;
+    for(dayCount=0; dayCount < 31; dayCount += 4){
+        RA8875_drawFastVLine(X, FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN, 3, RA8875_WHITE); //Tick
+        RA8875_textMode();
+        RA8875_textTransparent(RA8875_WHITE);
+        RA8875_textEnlarge(0);
+        char number[3];
+        RA8875_textSetCursor(X-10, (FOOTER_LEVEL-GRAPH_BOTTOM_MARGIN)+14);
+        itoa(day, number, TRUE);
+        RA8875_textWrite(number+1, 2);
+        
+        X -= (24*4);
+        
+        if(day < 5){
+            unsigned char remainder = (4-day);
+            if(month == 1){
+                month = 12;
+            }
+            else{
+                month--;
+            }
+            day = daysPerMonth[month];
+            day -= remainder;
+        }
+        else{
+            day -= 4;
+        }
+    }
 }
 
 void drawPlotYearXLabels(void){
@@ -396,21 +455,21 @@ void setGraphMode(unsigned char newMode) {
             clearPlotXLabels();
             drawPlotWeekXLabels();
             collectWeekData();
-            plotTemp(240);
+            plotTemp(336);
             currentGraphMode = newMode;
             break;
         case GRAPH_MODE_MONTH:
             clearPlotXLabels();
             drawPlotMonthXLabels();
             collectMonthData();
-            plotTemp(240);
+            plotTemp(360);
             currentGraphMode = newMode;
             break;
         case GRAPH_MODE_YEAR:
             clearPlotXLabels();
             drawPlotYearXLabels();
             collectYearData();
-            plotTemp(240);
+            plotTemp(365);
             currentGraphMode = newMode;
             break;
         default:
