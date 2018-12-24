@@ -34,6 +34,7 @@ void getTime(){
     currentMonth = (month_reg.tens * 10)+month_reg.ones;
     currentDay = (date_reg.tens*10)+date_reg.ones;
     currentHour = (hours_reg.tens*10)+hours_reg.ones;
+    minuteOfDay = (minutes_reg.tens*10)+minutes_reg.ones+(currentHour*60);
 }
 
 void formatTime(unsigned char seconds, unsigned char minutes, unsigned char hours, unsigned char date, unsigned char month, unsigned int year){

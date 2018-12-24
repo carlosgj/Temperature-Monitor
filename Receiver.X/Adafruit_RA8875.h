@@ -125,7 +125,7 @@ unsigned char _rst;
 unsigned int _width, _height;
 unsigned char _textScale;
 enum RA8875sizes _size;
-unsigned char textLine;
+unsigned char textLine=0;
 
 // Colors (RGB565)
 #define	RA8875_BLACK            0x0000

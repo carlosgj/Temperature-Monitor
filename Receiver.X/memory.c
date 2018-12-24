@@ -19,7 +19,9 @@ void int_mem_write(unsigned int address, unsigned char val){
         //Wait for write to complete
     }
     NVMCON1bits.WREN = FALSE; //Diable writes
-    INTCONbits.GIE = TRUE; //Reenable interrupts    
+    INTCONbits.GIE = TRUE; //Reenable interrupts
+#else
+    __delay_ms(5);
 #endif
 }
 
@@ -101,7 +103,7 @@ void dumpExtMemPage(unsigned int page){
     RA8875_textMode();
     RA8875_textEnlarge(0);
     RA8875_textTransparent(RA8875_WHITE);
-    
+    //textLine = 0;
     unsigned char val;
     unsigned char byteIndex;
     unsigned short long address;
@@ -275,4 +277,70 @@ void finishEEPROMPage(unsigned int pageIndex){
         checksum ^= ext_mem_read(addressPrefix | i);
     }
     ext_mem_write(addressPrefix | 255, checksum);
+}
+
+void collectDayData(void){
+    //Check if previous page is actually previous day
+    //unsigned int datestamp = formatDateToDatestamp(currentYear, currentMonth, currentDay);
+    unsigned int yesterdayDatestamp = formatDateToDatestamp(currentYear, currentMonth, currentDay-1);
+    unsigned short long pageheaderaddress = (currentEEPROMPage) << 8;
+    unsigned short long yesterdaypageheaderaddress = (currentEEPROMPage-1) << 8;
+    unsigned int pagedatestamp = (ext_mem_read(yesterdaypageheaderaddress) << 8) | ext_mem_read(yesterdaypageheaderaddress+1);
+    //We want 24 hours of data (240 samples)
+    //We're on sample (minuteOfDay)/6 of this day
+    //Therefore, we need 240-(minuteOfDay/6) samples from the previous day
+    unsigned char i;
+    unsigned yesterdaySamples = 240-(minuteOfDay/6);
+    unsigned char yesterdayStartByte = 254-yesterdaySamples;
+    for(i=0; i<yesterdaySamples; i++){
+        if(pagedatestamp == yesterdayDatestamp){
+            tempData[i] = ext_mem_read(yesterdaypageheaderaddress | (yesterdayStartByte+i));
+        }
+        else{
+            tempData[i] = 0xff;
+        }
+    }
+    
+    //Load today's data
+    for(i=0; i<(minuteOfDay/6); i++){
+        tempData[yesterdaySamples + i] = ext_mem_read(pageheaderaddress | (2+i));   
+    }
+}
+
+void collectWeekData(void){
+    
+}
+
+void collectMonthData(void){
+    
+}
+
+void collectYearData(void){
+    unsigned int count = 0;
+    //Clear the buffer
+    for(count=0; count<364; count++){
+        tempData[count] = 0xff;
+    }
+    
+    //Don't include current day, since it's not finished
+    unsigned int beginningDatestamp = formatDateToDatestamp(currentYear-1, currentMonth, currentDay);
+    unsigned int thisPageIndex = currentEEPROMPage-1;
+    for(count=0; count<365; count++){
+        //Get datestamp of prospective page
+        unsigned int pageDatestamp = (ext_mem_read(thisPageIndex) << 8) | ext_mem_read(thisPageIndex+1);
+        if(pageDatestamp < beginningDatestamp || pageDatestamp == 0xffff){
+            break;
+        }
+        
+        unsigned char val = 0;
+        tempData[364-count] = val;
+        
+        if(thisPageIndex == 0){
+            thisPageIndex = 1023;
+        }
+        else{
+            thisPageIndex--;
+        }
+    }
+    
 }

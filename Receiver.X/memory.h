@@ -3,8 +3,8 @@
 
 #include <xc.h> 
 
-#define DISABLE_EXTERNAL_MEMORY_WRITE
-#define DISABLE_INTERNAL_MEMORY_WRITE
+//#define DISABLE_EXTERNAL_MEMORY_WRITE
+//#define DISABLE_INTERNAL_MEMORY_WRITE
 
 #define INTERNAL_EEPROM_PAGE_INDEX_LOCATION 0
 #define INTERNAL_EEPROM_PAGE_INDEX_COMPLEMENT_LOCATION 2
@@ -29,7 +29,10 @@ unsigned int formatDateToDatestamp(unsigned char year, unsigned char month, unsi
 void dumpExtMemPage(unsigned int page); 
 void fillExtMemPage(unsigned int page);
 void finishEEPROMPage(unsigned int pageIndex);
-
+void collectDayData(void);
+void collectWeekData(void);
+void collectMonthData(void);
+void collectYearData(void);
 
 unsigned int currentEEPROMPage = 0xffff;
 

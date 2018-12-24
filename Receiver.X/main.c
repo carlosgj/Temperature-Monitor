@@ -83,6 +83,7 @@
 void main(void) {
     if (!init()) {
         setDisplayMode(DISP_MODE_HOME);
+        setGraphMode(GRAPH_MODE_DAY);
         while (1) {
             run();
         }
@@ -189,8 +190,19 @@ unsigned char init(void) {
     //setupEEPROMPage(0, currentYear, currentMonth, currentDay);
     //fillExtMemPage(0);
     //ext_mem_write(0x000005, 0xaa);
-    __delay_ms(10);
+    __delay_ms(500);
+    __delay_ms(500);
+    __delay_ms(500);
+    __delay_ms(500);
     dumpExtMemPage(0);
+    
+    
+    __delay_ms(500);
+    __delay_ms(500);
+    __delay_ms(500);
+    __delay_ms(500);
+    
+    dumpExtMemPage(1);
     
     
     __delay_ms(500);
@@ -221,6 +233,8 @@ unsigned char init(void) {
 }
 
 void run(void) {
+    unsigned char oldMinuteOfDay = minuteOfDay;
+    unsigned char oldDay = currentDay;
     if (fast_tasks_timer == 0) {
         fast_tasks_timer = FAST_TASKS_RATE;
         getTime();
@@ -234,13 +248,30 @@ void run(void) {
         getTemperature();
         drawTemp();
         if (currentDisplayMode == DISP_MODE_HOME) {
-        //Draw temperature data to screen
-        plotTemp();
+            switch(currentGraphMode){
+                case GRAPH_MODE_DAY:
+                    clearPlotXLabels();
+                    drawPlotDayXLabels();
+                    collectDayData();
+                    plotTemp(240);
+                    break;
+            }
     }
     }
     
     fast_tasks_timer--;
     slow_tasks_timer--;
+    
+    if(oldMinuteOfDay != minuteOfDay){
+        if((minuteOfDay % 6 == 0)){
+            //Write temperature to memory
+            unsigned char sampleIndex = minuteOfDay / 6;
+            ext_mem_write((currentEEPROMPage<<8)+2+sampleIndex , currentTemperatureByte);
+        }
+    }
+    if(oldDay != currentDay){
+        incrementEEPROMPageIndex();
+    }
     
     //pros_seconds.all = 0;
     //pros_minutes.all = 0;
@@ -272,16 +303,6 @@ void updateButtons(void) {
     buttonPressed.all = buttonState.all & ~oldButtonState.all;
 }
 
-void plotTemp(void) {
-    clearPlot();
-    unsigned int i;
-    unsigned int j = 0;
-    for (i = GRAPH_H_MARGIN + 2; i < (GRAPH_RIGHT - 1); i += 2) {
-        plotTempPoint(i, tempData[j]);
-        j++;
-    }
-}
-
 void handleButtonActions(void) {
     //If any button is pressed when asleep, wake up
     if (buttonPressed.all != 0 && isSleep) {
@@ -292,7 +313,7 @@ void handleButtonActions(void) {
     if (buttonPressed.B1) {
         switch (currentDisplayMode) {
             case DISP_MODE_HOME:
-                //Switch to past-day plot
+                setGraphMode(GRAPH_MODE_DAY);
                 break;
             case DISP_MODE_UTIL:
                 //Switch to home
@@ -310,6 +331,7 @@ void handleButtonActions(void) {
         switch (currentDisplayMode) {
             case DISP_MODE_HOME:
                 //Switch to past-week plot
+                setGraphMode(GRAPH_MODE_WEEK);
                 break;
             case DISP_MODE_UTIL:
                 //Switch to time-set screen
@@ -336,6 +358,7 @@ void handleButtonActions(void) {
         switch (currentDisplayMode) {
             case DISP_MODE_HOME:
                 //Switch to past-month plot
+                setGraphMode(GRAPH_MODE_MONTH);
                 break;
             case DISP_MODE_UTIL:
                 //Force start RTC
@@ -362,6 +385,7 @@ void handleButtonActions(void) {
         switch (currentDisplayMode) {
             case DISP_MODE_HOME:
                 //Switch to past-year plot
+                setGraphMode(GRAPH_MODE_YEAR);
                 break;
             case DISP_MODE_UTIL:
                 break;

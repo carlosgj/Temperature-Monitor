@@ -30,6 +30,11 @@
 #define DISP_MODE_SETTIME   2
 #define DISP_MODE_VERIFY_RESET  3
 
+#define GRAPH_MODE_DAY 0
+#define GRAPH_MODE_WEEK 1
+#define GRAPH_MODE_MONTH 2
+#define GRAPH_MODE_YEAR 3
+
 #define ACTIVE_TIME_10YR    0
 #define ACTIVE_TIME_YEAR    1
 #define ACTIVE_TIME_10MNTH  2
@@ -64,9 +69,17 @@ void incrementActiveChar(void);
 void decrementActiveChar(void);
 void clearPlot(void);
 void drawTemp(void);
+void plotTemp(unsigned int count);
+void setGraphMode(unsigned char newMode);
+void clearPlotXLabels(void);
+void drawPlotDayXLabels(void);
+void drawPlotWeekXLabels(void);
+void drawPlotMonthXLabels(void);
+void drawPlotYearXLabels(void);
 
 unsigned char currentDisplayMode = DISP_MODE_HOME;
 unsigned char isSleep = FALSE;
+unsigned char currentGraphMode = GRAPH_MODE_DAY;
 
 #endif	/* XC_HEADER_TEMPLATE_H */
 

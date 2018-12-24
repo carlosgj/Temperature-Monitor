@@ -129,6 +129,10 @@ void drawUtilScreen(void) {
     itoh16(currentEEPROMPage, uintStr);
     RA8875_textWrite(uintStr, 4);
     PRINT("\n");
+    PRINT("RTC control register: 0x");
+    itoh8(readRTCReg(REG_CONTROL), uintStr);
+    RA8875_textWrite(uintStr, 2);
+    PRINT("\n");
     
 }
 
@@ -282,11 +286,77 @@ unsigned int tempToPixel(unsigned char temp) {
 }
 
 void plotTempPoint(unsigned int x, unsigned char temp) {
+    if(temp != 0xff){
     RA8875_fillCircle(x, tempToPixel(temp), 1, RA8875_RED);
+    }
 }
 
 void clearPlot(void){
     RA8875_HWfillRect(GRAPH_H_MARGIN+1, HEADER_LEVEL+10, GRAPH_WIDTH-2, GRAPH_V_PIXELS-1, RA8875_BLACK);
+}
+
+void clearPlotXLabels(void){
+    RA8875_HWfillRect(GRAPH_H_MARGIN-10, (FOOTER_LEVEL-GRAPH_BOTTOM_MARGIN)+1, GRAPH_WIDTH+20, 30, RA8875_BLACK);
+}
+
+void drawPlotDayXLabels(void){
+    unsigned int X = GRAPH_RIGHT-((currentHour % 6)*20);
+    unsigned char hour = (currentHour / 6)*6;
+    unsigned char hourCount = 0;
+    //2px per sample, 10 samples per hour
+    for(hourCount = 0; hourCount < 24; hourCount += 6){
+        RA8875_drawFastVLine(X, FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN, 3, RA8875_WHITE); //Tick
+        
+        RA8875_textMode();
+        RA8875_textTransparent(RA8875_WHITE);
+        RA8875_textEnlarge(0);
+        char number[3];
+        RA8875_textSetCursor(X-10, (FOOTER_LEVEL-GRAPH_BOTTOM_MARGIN)+14);
+        itoa(hour, number, TRUE);
+        RA8875_textWrite(number+1, 2);
+        
+        X -= 120;
+        if(hour >=6){
+            hour -= 6;
+        }
+        else{
+            hour = 18;
+        }
+    }
+}
+
+void drawPlotWeekXLabels(void){
+    
+}
+
+void drawPlotMonthXLabels(void){
+    
+}
+
+void drawPlotYearXLabels(void){
+    unsigned int X = GRAPH_RIGHT-(currentDay*2);
+    unsigned char month = currentMonth;
+    unsigned char monthCount = 0;
+    //2px per sample, 10 samples per hour
+    for(monthCount = 0; monthCount < 12; monthCount ++){
+        RA8875_drawFastVLine(X, FOOTER_LEVEL - GRAPH_BOTTOM_MARGIN, 3, RA8875_WHITE); //Tick
+        
+        RA8875_textMode();
+        RA8875_textTransparent(RA8875_WHITE);
+        RA8875_textEnlarge(0);
+        char number[3];
+        RA8875_textSetCursor(X-10, (FOOTER_LEVEL-GRAPH_BOTTOM_MARGIN)+14);
+        itoa(month, number, TRUE);
+        RA8875_textWrite(number+1, 2);
+        
+        X -= 60;
+        if(month >1){
+            month--;
+        }
+        else{
+            month=12;
+        }
+    }
 }
 
 void setDisplayMode(unsigned char newMode) {
@@ -306,6 +376,42 @@ void setDisplayMode(unsigned char newMode) {
         case DISP_MODE_VERIFY_RESET:
             drawVerifyResetScreen();
             currentDisplayMode = newMode;
+            break;
+        default:
+            break;
+    }
+
+}
+
+void setGraphMode(unsigned char newMode) {
+    switch (newMode) {
+        case GRAPH_MODE_DAY:
+            clearPlotXLabels();
+            drawPlotDayXLabels();
+            collectDayData();
+            plotTemp(240);
+            currentGraphMode = newMode;
+            break;
+        case GRAPH_MODE_WEEK:
+            clearPlotXLabels();
+            drawPlotWeekXLabels();
+            collectWeekData();
+            plotTemp(240);
+            currentGraphMode = newMode;
+            break;
+        case GRAPH_MODE_MONTH:
+            clearPlotXLabels();
+            drawPlotMonthXLabels();
+            collectMonthData();
+            plotTemp(240);
+            currentGraphMode = newMode;
+            break;
+        case GRAPH_MODE_YEAR:
+            clearPlotXLabels();
+            drawPlotYearXLabels();
+            collectYearData();
+            plotTemp(240);
+            currentGraphMode = newMode;
             break;
         default:
             break;
@@ -749,4 +855,18 @@ void drawTemp(void){
     else{
         RA8875_textWrite("0", 1);
     }
+}
+
+void plotTemp(unsigned int count) {
+    clearPlot();
+    unsigned int dataIndex = count-1;
+    unsigned int pixelIndex = GRAPH_RIGHT-2;
+    do{
+        if(pixelIndex <= (GRAPH_H_MARGIN+2)){
+            break;
+        }
+        plotTempPoint(pixelIndex, tempData[dataIndex]);
+        pixelIndex -= 2;
+        dataIndex--;
+    }while(dataIndex >0);
 }
