@@ -116,12 +116,12 @@ void drawUtilScreen(void) {
     PRINT("Time");
     RA8875_textSetCursor(280, MENU_TEXT_Y);
     PRINT("RTC FS");
-    RA8875_textSetCursor(435, MENU_TEXT_Y);
-    PRINT("Null");
+    RA8875_textSetCursor(430, MENU_TEXT_Y);
+    PRINT("Reset");
     RA8875_textSetCursor(570, MENU_TEXT_Y);
     PRINT("Null");
-    RA8875_textSetCursor(695, MENU_TEXT_Y);
-    PRINT("RESET");
+    RA8875_textSetCursor(700, MENU_TEXT_Y);
+    PRINT("Init");
 
     RA8875_textEnlarge(0);
     RA8875_textSetCursor(0, HEADER_LEVEL + 10);
@@ -928,4 +928,12 @@ void plotTemp(unsigned int count) {
         pixelIndex -= 2;
         dataIndex--;
     }while(dataIndex >0);
+}
+
+void drawSafeMode(void){
+    RA8875_textMode();
+    RA8875_textSetCursor(250, 100);
+    RA8875_textEnlarge(3);
+    RA8875_textTransparent(RA8875_RED);
+    PRINT("SAFE MODE");
 }

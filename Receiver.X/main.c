@@ -179,6 +179,14 @@ unsigned char init(void) {
         PRINT("\n");
     }
 
+    if(currentYear < 18){
+        //Clock was reset
+        PRINT("Time not set! Starting up in safe mode...\n");
+        safeMode = TRUE;
+    }
+    else{
+        safeMode = FALSE;
+    }
 
     //Bootstrap memory
     if (!initError) {
@@ -194,16 +202,12 @@ unsigned char init(void) {
     __delay_ms(500);
     __delay_ms(500);
     __delay_ms(500);
-    dumpExtMemPage(0);
-    
-    
-    __delay_ms(500);
-    __delay_ms(500);
-    __delay_ms(500);
-    __delay_ms(500);
-    
-    dumpExtMemPage(1);
-    
+    if(currentEEPROMPage != 0xffff){
+    dumpExtMemPage(currentEEPROMPage);
+    }
+    else{
+        PRINT("No valid EEPROM page found!\n");
+    }
     
     __delay_ms(500);
     __delay_ms(500);
@@ -241,6 +245,9 @@ void run(void) {
         drawTime();
         updateButtons();
         handleButtonActions();
+        if(safeMode){
+            drawSafeMode();
+        }
     }
     //drawHomeScreen();
     if(slow_tasks_timer == 0){
@@ -407,6 +414,8 @@ void handleButtonActions(void) {
                 setGraphMode(GRAPH_MODE_YEAR);
                 break;
             case DISP_MODE_UTIL:
+                //Reset
+                RESET();
                 break;
             case DISP_MODE_SETTIME:
                 //Move cursor right

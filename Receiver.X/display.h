@@ -76,6 +76,7 @@ void drawPlotDayXLabels(void);
 void drawPlotWeekXLabels(void);
 void drawPlotMonthXLabels(void);
 void drawPlotYearXLabels(void);
+void drawSafeMode(void);
 
 unsigned char currentDisplayMode = DISP_MODE_HOME;
 unsigned char isSleep = FALSE;

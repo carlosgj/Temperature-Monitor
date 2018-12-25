@@ -7,19 +7,21 @@
 
 void int_mem_write(unsigned int address, unsigned char val) {
 #ifndef DISABLE_INTERNAL_MEMORY_WRITE
-    NVMCON1bits.NVMREG = 0; //Select data EEPROM
-    NVMCON1bits.WREN = TRUE; //Enable write
-    NVMADR = address;
-    NVMDAT = val;
-    INTCONbits.GIE = FALSE; //Disable interrupts during write sequence
-    NVMCON2 = 0x55;
-    NVMCON2 = 0xaa;
-    NVMCON1bits.WR = TRUE; //Start write
-    while (NVMCON1bits.WR) {
-        //Wait for write to complete
+    if (!safeMode) {
+        NVMCON1bits.NVMREG = 0; //Select data EEPROM
+        NVMCON1bits.WREN = TRUE; //Enable write
+        NVMADR = address;
+        NVMDAT = val;
+        INTCONbits.GIE = FALSE; //Disable interrupts during write sequence
+        NVMCON2 = 0x55;
+        NVMCON2 = 0xaa;
+        NVMCON1bits.WR = TRUE; //Start write
+        while (NVMCON1bits.WR) {
+            //Wait for write to complete
+        }
+        NVMCON1bits.WREN = FALSE; //Diable writes
+        INTCONbits.GIE = TRUE; //Reenable interrupts
     }
-    NVMCON1bits.WREN = FALSE; //Diable writes
-    INTCONbits.GIE = TRUE; //Reenable interrupts
 #else
     __delay_ms(5);
 #endif
@@ -34,37 +36,39 @@ unsigned char int_mem_read(unsigned int address) {
 
 void ext_mem_write(unsigned short long address, unsigned char val) {
 #ifndef DISABLE_EXTERNAL_MEMORY_WRITE
-    setSSP2CKE(TRUE);
-    if ((address & 0x20000) == 0) {
-        address &= 0x1ffff;
-        //First enable write latch
-        MEM1_CS_LAT = FALSE;
-        SPI2Transfer(EXT_MEM_OP_WREN);
-        MEM1_CS_LAT = TRUE;
-        __delay_us(10);
+    if (!safeMode) {
+        setSSP2CKE(TRUE);
+        if ((address & 0x20000) == 0) {
+            address &= 0x1ffff;
+            //First enable write latch
+            MEM1_CS_LAT = FALSE;
+            SPI2Transfer(EXT_MEM_OP_WREN);
+            MEM1_CS_LAT = TRUE;
+            __delay_us(10);
 
-        MEM1_CS_LAT = FALSE;
-        SPI2Transfer(EXT_MEM_OP_WRITE);
-        SPI2Transfer((unsigned char) (address >> 16));
-        SPI2Transfer((unsigned char) (address >> 8));
-        SPI2Transfer((unsigned char) (address));
-        SPI2Transfer(val);
-        MEM1_CS_LAT = TRUE;
-    } else {
-        address &= 0x1ffff;
-        //First enable write latch
-        MEM2_CS_LAT = FALSE;
-        SPI2Transfer(EXT_MEM_OP_WREN);
-        MEM2_CS_LAT = TRUE;
-        __delay_us(10);
+            MEM1_CS_LAT = FALSE;
+            SPI2Transfer(EXT_MEM_OP_WRITE);
+            SPI2Transfer((unsigned char) (address >> 16));
+            SPI2Transfer((unsigned char) (address >> 8));
+            SPI2Transfer((unsigned char) (address));
+            SPI2Transfer(val);
+            MEM1_CS_LAT = TRUE;
+        } else {
+            address &= 0x1ffff;
+            //First enable write latch
+            MEM2_CS_LAT = FALSE;
+            SPI2Transfer(EXT_MEM_OP_WREN);
+            MEM2_CS_LAT = TRUE;
+            __delay_us(10);
 
-        MEM2_CS_LAT = FALSE;
-        SPI2Transfer(EXT_MEM_OP_WRITE);
-        SPI2Transfer((unsigned char) (address >> 16));
-        SPI2Transfer((unsigned char) (address >> 8));
-        SPI2Transfer((unsigned char) (address));
-        SPI2Transfer(val);
-        MEM2_CS_LAT = TRUE;
+            MEM2_CS_LAT = FALSE;
+            SPI2Transfer(EXT_MEM_OP_WRITE);
+            SPI2Transfer((unsigned char) (address >> 16));
+            SPI2Transfer((unsigned char) (address >> 8));
+            SPI2Transfer((unsigned char) (address));
+            SPI2Transfer(val);
+            MEM2_CS_LAT = TRUE;
+        }
     }
 #endif
     __delay_ms(7);
@@ -181,6 +185,10 @@ unsigned char loadEEPROMPageIndex(void) {
         }
         if (pagedatestamp > currentDatestamp) {
             PRINT("Current date earlier than header of indicated page in NVM!\n");
+            if(safeMode){
+                //Need to do this to allow user to set time
+                return FALSE;
+            }
             return TRUE;
         }
     }
@@ -349,8 +357,8 @@ void collectWeekData(void) {
             } else {
                 thisPageIndex--;
             }
-            unsigned char remainder = 6-byteIndex;
-            byteIndex = 241-remainder;
+            unsigned char remainder = 6 - byteIndex;
+            byteIndex = 241 - remainder;
         }
 
 
@@ -402,8 +410,8 @@ void collectMonthData(void) {
             } else {
                 thisPageIndex--;
             }
-            unsigned char remainder = 21-byteIndex;
-            byteIndex = 241-remainder;
+            unsigned char remainder = 21 - byteIndex;
+            byteIndex = 241 - remainder;
         }
 
 
