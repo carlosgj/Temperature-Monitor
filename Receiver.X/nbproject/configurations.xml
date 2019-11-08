@@ -5,14 +5,14 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>main.h</itemPath>
-      <itemPath>RFM69registers.h</itemPath>
-      <itemPath>RFM69.h</itemPath>
       <itemPath>common.h</itemPath>
       <itemPath>SPI.h</itemPath>
       <itemPath>pindef.h</itemPath>
       <itemPath>DS3234.h</itemPath>
       <itemPath>Adafruit_RA8875.h</itemPath>
       <itemPath>display.c</itemPath>
+      <itemPath>memory.h</itemPath>
+      <itemPath>therm.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -22,11 +22,12 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>main.c</itemPath>
-      <itemPath>RFM69.c</itemPath>
       <itemPath>SPI.c</itemPath>
       <itemPath>DS3234.c</itemPath>
       <itemPath>Adafruit_RA8875.c</itemPath>
       <itemPath>display.h</itemPath>
+      <itemPath>memory.c</itemPath>
+      <itemPath>therm.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -102,6 +103,7 @@
         <property key="verbose" value="false"/>
         <property key="warning-level" value="-3"/>
         <property key="what-to-do" value="ignore"/>
+        <appendMe value="--msgdisable=520"/>
       </HI-TECH-COMP>
       <HI-TECH-LINK>
         <property key="additional-options-checksum" value=""/>

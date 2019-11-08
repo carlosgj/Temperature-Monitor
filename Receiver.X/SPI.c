@@ -33,12 +33,10 @@ void SPIInit(){
     RTC_CS_TRIS = OUTPUT;
     MEM1_CS_TRIS = OUTPUT;
     MEM2_CS_TRIS = OUTPUT;
-    RFM69_CS_TRIS = OUTPUT;
     
-    RTC_CS_LAT = TRUE;
+    RTC_CS_LAT = FALSE;
     MEM1_CS_LAT = TRUE;
     MEM2_CS_LAT = TRUE;
-    RFM69_CS_LAT = TRUE;
     
     //Set up inputs
     SSP2CLKPPS = 0b00001001; //SSP2 clk in on B1
@@ -49,7 +47,7 @@ void SPIInit(){
     RD4PPS = 0x12; //MSSP2 MOSI on D4
     
     SSP2STATbits.SMP = 0;
-    SSP2STATbits.CKE = 1;
+    SSP2STATbits.CKE = 0;
     SSP2CON1bits.CKP = 0;
     SSP2CON1bits.SSPM = 0b0010; //Fosc/64
     SSP2CON3bits.BOEN = TRUE;
@@ -81,3 +79,16 @@ unsigned char SPI1Transfer(unsigned char data){
     }
     return result;
 }
+
+void setSSP2CKE(unsigned char newVal){
+    unsigned char oldVal = SSP2STATbits.CKE;
+    if(newVal == oldVal){
+        return;
+    }
+    else{
+        SSP2CON1bits.SSPEN = FALSE;
+        SSP2STATbits.CKE = newVal;
+        SSP2CON1bits.SSPEN = TRUE;
+        __delay_us(100);
+    }
+    }

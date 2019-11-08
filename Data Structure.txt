@@ -1,5 +1,6 @@
 256 bytes per page
 512 pages per chip
+(131,072 bytes per chip)
 2 chips
 
 Temp stored as 8-bit fixed point
@@ -14,10 +15,14 @@ Byte 0          |Byte 1         |
 MSB          LSB|MSB         LSB|
 |7|6|5|4|3|2|1|0|7|6|5|4|3|2|1|0|
 ---------------------------------
-|  Year   |RSV|     Day         |
+|*|   Year    | Month |   Day   |
+
+* = isComplete
 
 Byte 254: day average temp
 Byte 255: checksum of page
+
+Bytes 242-253 (inclusive): unused
 
 Home screen buttons:
     - Day
@@ -35,4 +40,11 @@ Util screen buttons:
 Util screen:
     - Current EEPROM page
     - Current temp
+
+Store current EEPROM page in PIC EEPROM
+
+Plot scaling:
+    Year: One day per 2 pixels
+    Week: 
+    Month: 1/20 samples (every 2 hours)
     
