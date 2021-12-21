@@ -192,12 +192,17 @@ unsigned char init(void) {
     if (!initError) {
         if (loadEEPROMPageIndex()) {
             PRINT("Data memory setup failed!\n");
-            initError = TRUE;
+            //initError = TRUE;
+            safeMode = TRUE;
         }
     }
     //setupEEPROMPage(0, currentYear, currentMonth, currentDay);
     //fillExtMemPage(0);
     //ext_mem_write(0x000005, 0xaa);
+    __delay_ms(500);
+    __delay_ms(500);
+    __delay_ms(500);
+    __delay_ms(500);
     __delay_ms(500);
     __delay_ms(500);
     __delay_ms(500);
@@ -428,8 +433,9 @@ void handleButtonActions(void) {
                 break;
             case DISP_MODE_VERIFY_RESET:
                 //"Yes" selected
+                safeMode = FALSE;
                 resetEEPROMPageIndex();
-                setDisplayMode(DISP_MODE_HOME);
+                RESET();
                 break;
         }
         return;

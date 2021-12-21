@@ -124,7 +124,9 @@ void drawUtilScreen(void) {
     PRINT("Init");
 
     RA8875_textEnlarge(0);
-    RA8875_textSetCursor(0, HEADER_LEVEL + 10);
+    //RA8875_textSetCursor(0, HEADER_LEVEL + 10);
+    textLine = 5;
+    PRINT("\n");
     PRINT("Current EEPROM page: 0x");
     itoh16(currentEEPROMPage, uintStr);
     RA8875_textWrite(uintStr, 4);
@@ -350,7 +352,7 @@ void drawPlotWeekXLabels(void){
             else{
                 month--;
             }
-            day = daysPerMonth[month];
+            day = daysPerMonth[month-1];
         }
         else{
             day --;
@@ -383,7 +385,7 @@ void drawPlotMonthXLabels(void){
             else{
                 month--;
             }
-            day = daysPerMonth[month];
+            day = daysPerMonth[month-1];
             day -= remainder;
         }
         else{

@@ -173,6 +173,12 @@ unsigned char loadEEPROMPageIndex(void) {
     pageheaderaddress &= 0x3ffff; //For safety, zero out leading 6 bits
     //Check if datestamp matches current datestamp
     unsigned int pagedatestamp = (ext_mem_read(pageheaderaddress) << 8) | ext_mem_read(pageheaderaddress + 1);
+    
+    PRINT("Page datestamp: 0x");
+    itoh16(pagedatestamp, uintStr);
+    RA8875_textWrite(uintStr, 4);
+    PRINT("\n");
+    
     pagedatestamp &= 0x7fff; //Zero out first bit
     currentEEPROMPage = intmemindex;
     if (pagedatestamp == currentDatestamp) {
@@ -250,6 +256,7 @@ void setupEEPROMPage(unsigned int pageIndex, unsigned char year, unsigned char m
     }
 }
 
+// 16 bits: 0yyyyyym mmmddddd
 unsigned int formatDateToDatestamp(unsigned char year, unsigned char month, unsigned char day) {
     unsigned int result = 0;
     result |= (((unsigned int) year & 0b00111111) << 9);
