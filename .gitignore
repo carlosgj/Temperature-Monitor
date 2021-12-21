@@ -1,0 +1,12 @@
+COSMOS/TempMonitor/config/tools/
+COSMOS/Vendor/
+COSMOS/TempMonitor/outputs/
+COSMOS/TempMonitor/tools/
+COSMOS/TempMonitor/Rakefile
+COSMOS/TempMonitor/config/dart/Gemfile
+COSMOS/TempMonitor/config/dart/
+COSMOS/TempMonitor/Gemfile.old
+COSMOS/TempMonitor/lib/
+COSMOS/TempMonitor/Gemfile.lock
+COSMOS/TempMonitor/Gemfile.lock.old
+COSMOS/TempMonitor/Gemfile
