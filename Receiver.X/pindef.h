@@ -4,7 +4,6 @@
 #include <xc.h> // include processor files - each processor file is guarded.  
 
 #define THERM_TRIS          TRISCbits.TRISC5
-#define THERM_ANSEL         ANSELCbits.ANSELC5
 
 #define SCK1_TRIS           TRISCbits.TRISC3
 #define MOSI1_TRIS          TRISBbits.TRISB3

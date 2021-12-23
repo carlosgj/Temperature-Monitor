@@ -3,6 +3,7 @@
 
 #include <xc.h> 
 #include "Adafruit_RA8875.h"
+#include "serial.h"
 
 #define WIDTH 800
 #define HEIGHT 480

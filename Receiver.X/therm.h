@@ -8,7 +8,6 @@
 #define FVR_TIMEOUT 100
 
 unsigned char thermInit(void);
-unsigned char takeReading(unsigned int *result_p);
 unsigned char formatTemperatureToChar(unsigned int rawReading);
 void getTemperature(void);
 

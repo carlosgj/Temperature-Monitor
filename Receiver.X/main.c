@@ -79,6 +79,7 @@
 #include "display.h"
 #include "memory.h"
 #include "therm.h"
+#include "serial.h"
 
 void main(void) {
     if (!init()) {
@@ -237,6 +238,8 @@ unsigned char init(void) {
     buttonState.all = 0;
     oldButtonState.all = 0;
     buttonPressed.all = 0;
+    
+    serialInit();
 
     return initError;
 }
@@ -244,6 +247,12 @@ unsigned char init(void) {
 void run(void) {
     unsigned char oldMinuteOfDay = minuteOfDay;
     unsigned char oldDay = currentDay;
+    if(messageInProgressFlag){
+        __delay_ms(20);
+        processMessage();
+        currentTemperatureByte = formatTemperatureToChar(tempReadingRaw);
+        asm("NOP");
+    }
     if (fast_tasks_timer == 0) {
         fast_tasks_timer = FAST_TASKS_RATE;
         getTime();
@@ -257,7 +266,6 @@ void run(void) {
     //drawHomeScreen();
     if(slow_tasks_timer == 0){
         slow_tasks_timer = SLOW_TASKS_RATE;
-        getTemperature();
         drawTemp();
         if (currentDisplayMode == DISP_MODE_HOME) {
             switch(currentGraphMode){
@@ -483,10 +491,17 @@ void handleButtonActions(void) {
 }
 
 void interrupt ISR(void) {
+    if(PIR3bits.RC1IF){
+        messageBuffer[messageBufferIdx++] = RC1REG;
+        PIR3bits.RC1IF = FALSE;
+        messageInProgressFlag = TRUE;
+        return;
+    }
     if (PIR0bits.TMR0IF) {
         LATBbits.LATB5 = !LATBbits.LATB5;
         PIR0bits.TMR0IF = FALSE;
         ms_count++;
         TMR0 = 130;
+        return;
     }
 }

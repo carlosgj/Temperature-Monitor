@@ -136,6 +136,70 @@ void drawUtilScreen(void) {
     RA8875_textWrite(uintStr, 2);
     PRINT("\n");
     
+    //Radio stuff
+    PRINT("\n");
+    PRINT("Last received packet idx: 0x");
+    itoh16(pktIndex, uintStr);
+    RA8875_textWrite(uintStr, 4);
+    PRINT("\n");
+    
+    PRINT("Packet count: 0x");
+    itoh16(rcvCount, uintStr);
+    RA8875_textWrite(uintStr, 4);
+    PRINT("\n");
+    
+    PRINT("Raw temp: 0x");
+    itoh16(tempReadingRaw, uintStr);
+    RA8875_textWrite(uintStr, 4);
+    PRINT("\n");
+    
+    PRINT("Raw internal temp: 0x");
+    itoh16(intTempReadingRaw, uintStr);
+    RA8875_textWrite(uintStr, 4);
+    PRINT("\n");
+    
+    PRINT("Battery voltage: 0x");
+    itoh16(battVoltage, uintStr);
+    RA8875_textWrite(uintStr, 4);
+    PRINT(" (");
+    float foo = (float)(battVoltage);
+    foo *= 0.0064453125;
+    //We expect the voltage to be between 0 and 10
+    itoa((unsigned char)foo, uintStr, TRUE);
+    RA8875_textWrite(uintStr+2, 1);
+    PRINT(".");
+    foo -= (unsigned char)foo;
+    foo *= 100;
+    itoa((unsigned char)foo, uintStr, TRUE);
+    RA8875_textWrite(uintStr+1, 2);
+    PRINT("V)\n");
+    
+    PRINT("Solar panel voltage: 0x");
+    itoh16(solarVoltage, uintStr);
+    RA8875_textWrite(uintStr, 4);
+    PRINT(" (");
+    foo = (float)(solarVoltage);
+    foo *= 0.0064453125;
+    //We expect the voltage to be between 0 and 10
+    itoa((unsigned char)foo, uintStr, TRUE);
+    RA8875_textWrite(uintStr+2, 1);
+    PRINT(".");
+    foo -= (unsigned char)foo;
+    foo *= 100;
+    itoa((unsigned char)foo, uintStr, TRUE);
+    RA8875_textWrite(uintStr+1, 2);
+    PRINT("V)\n");
+    
+    PRINT("RSSI: -");
+    if(rssi >= 0){
+        PRINT("?\n");
+    }
+    else{
+        signed char tempRSSI = -rssi;
+        itoa((unsigned char)tempRSSI, uintStr, TRUE);
+        RA8875_textWrite(uintStr, 3);
+        PRINT("\n");
+    }
 }
 
 void drawVerifyResetScreen(){
