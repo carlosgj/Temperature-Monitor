@@ -6,7 +6,7 @@
 //#define DO_SERIAL
 #define DO_SLEEP
 
-#define PERIOD 5000
+#define PERIOD 30000
 
 #ifdef DO_SLEEP
 #undef DO_SERIAL
@@ -71,8 +71,8 @@ void setup() {
   rf69.setTxPower(20, true);  // range from 14-20 for power, 2nd arg must be true for 69HCW
 
   // The encryption key has to be the same as the one in the server
-  uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+  uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x06, 0x06,
+                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x06, 0x06};
   rf69.setEncryptionKey(key);
   
   #ifdef DO_SERIAL
@@ -94,6 +94,21 @@ void setup() {
 }
 
 void loop() {
+  for(uint8_t i=0; i<8; i++){
+    oneWireAddr[i] = 0;
+  }
+  myWire.reset_search();
+  myWire.search(oneWireAddr);
+  #ifdef DO_SERIAL
+  Serial.print("Found address: ");
+  for(uint8_t i=0; i<8; i++){
+    Serial.print(oneWireAddr[i], HEX);
+  }
+  Serial.println();
+  #endif
+
+
+  
   uint16_t temp = readTemperature();
   uint16_t battVoltage = analogRead(A9);
   uint16_t solarVoltage = analogRead(A0);
@@ -150,7 +165,7 @@ void loop() {
         #ifdef DO_SERIAL
         Serial.println("Good ACK");
         #endif
-        Blink(LED, 50, 3); //blink LED 3 times, 50ms between blinks
+        Blink(LED, 50, 2); //blink LED 3 times, 50ms between blinks
       }
       else{
         #ifdef DO_SERIAL
