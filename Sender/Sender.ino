@@ -107,7 +107,7 @@ void loop() {
   Serial.println();
   #endif
 
-
+  delay(10);
   
   uint16_t temp = readTemperature();
   uint16_t battVoltage = analogRead(A9);
