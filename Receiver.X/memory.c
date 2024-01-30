@@ -8,19 +8,19 @@
 void int_mem_write(unsigned int address, unsigned char val) {
 #ifndef DISABLE_INTERNAL_MEMORY_WRITE
     if (!safeMode) {
-        NVMCON1bits.NVMREG = 0; //Select data EEPROM
-        NVMCON1bits.WREN = TRUE; //Enable write
-        NVMADR = address;
-        NVMDAT = val;
-        INTCONbits.GIE = FALSE; //Disable interrupts during write sequence
-        NVMCON2 = 0x55;
-        NVMCON2 = 0xaa;
-        NVMCON1bits.WR = TRUE; //Start write
-        while (NVMCON1bits.WR) {
+        //NVMCON1bits.NVMREG = 0; //Select data EEPROM
+        //NVMCON1bits.WREN = TRUE; //Enable write
+        //NVMADR = address;
+        //NVMDAT = val;
+        INTCON0bits.GIE = FALSE; //Disable interrupts during write sequence
+        //NVMCON2 = 0x55;
+        //NVMCON2 = 0xaa;
+        //NVMCON1bits.WR = TRUE; //Start write
+        //while (NVMCON1bits.WR) {
             //Wait for write to complete
-        }
-        NVMCON1bits.WREN = FALSE; //Diable writes
-        INTCONbits.GIE = TRUE; //Reenable interrupts
+        //}
+        //NVMCON1bits.WREN = FALSE; //Diable writes
+        INTCON0bits.GIE = TRUE; //Reenable interrupts
     }
 #else
     __delay_ms(5);
@@ -28,13 +28,14 @@ void int_mem_write(unsigned int address, unsigned char val) {
 }
 
 unsigned char int_mem_read(unsigned int address) {
-    NVMCON1bits.NVMREG = 0; //Select data EEPROM
-    NVMADR = address;
-    NVMCON1bits.RD = TRUE; //Initiate read
-    return NVMDAT;
+    uint8_t result = 0;
+    //NVMCON1bits.NVMREG = 0; //Select data EEPROM
+    //NVMADR = address;
+    //NVMCON1bits.RD = TRUE; //Initiate read
+    return result;
 }
 
-void ext_mem_write(unsigned short long address, unsigned char val) {
+void ext_mem_write(uint32_t address, unsigned char val) {
 #ifndef DISABLE_EXTERNAL_MEMORY_WRITE
     if (!safeMode) {
         setSSP2CKE(TRUE);
@@ -74,7 +75,7 @@ void ext_mem_write(unsigned short long address, unsigned char val) {
     __delay_ms(7);
 }
 
-unsigned char ext_mem_read(unsigned short long address) {
+unsigned char ext_mem_read(uint32_t address) {
     setSSP2CKE(TRUE);
     unsigned char result = 0xaa;
     if ((address & 0x20000) == 0) {
@@ -107,7 +108,7 @@ void dumpExtMemPage(unsigned int page) {
     //textLine = 0;
     unsigned char val;
     unsigned char byteIndex;
-    unsigned short long address;
+    uint32_t address;
     char chars[2];
     unsigned char i;
     unsigned char j;
@@ -130,7 +131,7 @@ void dumpExtMemPage(unsigned int page) {
 void fillExtMemPage(unsigned int page) {
     unsigned char val;
     unsigned char byteIndex;
-    unsigned short long address;
+    uint32_t address;
     unsigned char i;
     unsigned char j;
     for (i = 0; i < 16; i++) {
@@ -151,33 +152,33 @@ unsigned char loadEEPROMPageIndex(void) {
     unsigned int intmemindex_c = ((unsigned int) int_mem_read(INTERNAL_EEPROM_PAGE_INDEX_COMPLEMENT_LOCATION) << 8) | int_mem_read(INTERNAL_EEPROM_PAGE_INDEX_COMPLEMENT_LOCATION + 1);
     //Validate internal EEPROM
     if (intmemindex != (~intmemindex_c)) {
-        PRINT("NVM stored EEPROM page index invalid!\n");
-        PRINT("Index: 0x");
+        //PRINT("NVM stored EEPROM page index invalid!\n");
+        //PRINT("Index: 0x");
         itoh16(intmemindex, uintStr);
         RA8875_textWrite(uintStr, 4);
-        PRINT("\n");
-        PRINT("Complementary index: 0x");
+        //PRINT("\n");
+        //PRINT("Complementary index: 0x");
         itoh16(intmemindex_c, uintStr);
         RA8875_textWrite(uintStr, 4);
-        PRINT("\n");
+        //PRINT("\n");
         return TRUE;
     }
-    PRINT("EEPROM page index from internal memory: 0x");
+    //PRINT("EEPROM page index from internal memory: 0x");
 
     itoh16(intmemindex, uintStr);
     RA8875_textWrite(uintStr, 4);
-    PRINT("\n");
+    //PRINT("\n");
     //Check datestamp on EEPROM page indicated by stored index
     unsigned int currentDatestamp = formatDateToDatestamp(currentYear, currentMonth, currentDay);
-    unsigned short long pageheaderaddress = intmemindex << 8;
+    uint32_t pageheaderaddress = intmemindex << 8;
     pageheaderaddress &= 0x3ffff; //For safety, zero out leading 6 bits
     //Check if datestamp matches current datestamp
     unsigned int pagedatestamp = (ext_mem_read(pageheaderaddress) << 8) | ext_mem_read(pageheaderaddress + 1);
     
-    PRINT("Page datestamp: 0x");
+    //PRINT("Page datestamp: 0x");
     itoh16(pagedatestamp, uintStr);
     RA8875_textWrite(uintStr, 4);
-    PRINT("\n");
+    //PRINT("\n");
     
     pagedatestamp &= 0x7fff; //Zero out first bit
     currentEEPROMPage = intmemindex;
@@ -185,12 +186,12 @@ unsigned char loadEEPROMPageIndex(void) {
         return FALSE;
     } else {
         if (pagedatestamp < currentDatestamp) {
-            PRINT("Incrementing EEPROM page...");
+            //PRINT("Incrementing EEPROM page...");
             incrementEEPROMPageIndex();
             return FALSE;
         }
         if (pagedatestamp > currentDatestamp) {
-            PRINT("Current date earlier than header of indicated page in NVM!\n");
+            //PRINT("Current date earlier than header of indicated page in NVM!\n");
             if(safeMode){
                 //Need to do this to allow user to set time
                 return FALSE;
@@ -243,10 +244,24 @@ void resetEEPROMPageIndex(void) {
     currentEEPROMPage = newPageIndex;
 }
 
+void setEEPROMPageIndex(uint16_t newPageIndex) {
+    unsigned int newPageIndex_c = ~newPageIndex;
+    int_mem_write(INTERNAL_EEPROM_PAGE_INDEX_LOCATION, (unsigned char) (newPageIndex >> 8));
+    int_mem_write(INTERNAL_EEPROM_PAGE_INDEX_LOCATION + 1, (unsigned char) (newPageIndex));
+    int_mem_write(INTERNAL_EEPROM_PAGE_INDEX_COMPLEMENT_LOCATION, (unsigned char) (newPageIndex_c >> 8));
+    int_mem_write(INTERNAL_EEPROM_PAGE_INDEX_COMPLEMENT_LOCATION + 1, (unsigned char) (newPageIndex_c));
+
+    //Setup new page
+    //setupEEPROMPage(0, currentYear, currentMonth, currentDay);
+
+    //Change value in RAM
+    currentEEPROMPage = newPageIndex;
+}
+
 void setupEEPROMPage(unsigned int pageIndex, unsigned char year, unsigned char month, unsigned char day) {
     unsigned int datestamp = formatDateToDatestamp(year, month, day);
     //Write to EEPROM page header
-    unsigned short long pageheaderaddress = pageIndex << 8;
+    uint32_t pageheaderaddress = pageIndex << 8;
     pageheaderaddress &= 0x3ffff; //For safety, zero out leading 6 bits
     ext_mem_write(pageheaderaddress, ((unsigned char) (datestamp >> 8))&0b01111111);
     ext_mem_write(pageheaderaddress + 1, (unsigned char) (datestamp & 0xff));
@@ -267,7 +282,7 @@ unsigned int formatDateToDatestamp(unsigned char year, unsigned char month, unsi
 
 void finishEEPROMPage(unsigned int pageIndex) {
     unsigned int accumulator = 0;
-    unsigned short long addressPrefix = (pageIndex << 8);
+    uint32_t addressPrefix = (pageIndex << 8);
     unsigned char i;
     unsigned char goodMeasurements = 0;
     for (i = 2; i < (240 + 2); i++) {
@@ -298,8 +313,8 @@ void collectDayData(void) {
     //Check if previous page is actually previous day
     //unsigned int datestamp = formatDateToDatestamp(currentYear, currentMonth, currentDay);
     unsigned int yesterdayDatestamp = formatDateToDatestamp(currentYear, currentMonth, currentDay - 1);
-    unsigned short long pageheaderaddress = (currentEEPROMPage) << 8;
-    unsigned short long yesterdaypageheaderaddress = (currentEEPROMPage - 1) << 8;
+    uint32_t pageheaderaddress = (currentEEPROMPage) << 8;
+    uint32_t yesterdaypageheaderaddress = (currentEEPROMPage - 1) << 8;
     unsigned int pagedatestamp = (ext_mem_read(yesterdaypageheaderaddress) << 8) | ext_mem_read(yesterdaypageheaderaddress + 1);
     //We want 24 hours of data (240 samples)
     //We're on sample (minuteOfDay)/6 of this day
@@ -346,7 +361,7 @@ void collectWeekData(void) {
     unsigned char byteIndex = (minuteOfDay / 6) + 2;
     for (count = 0; count < 336; count++) {
         //Get datestamp of prospective page
-        unsigned short long baseAddress = thisPageIndex << 8;
+        uint32_t baseAddress = thisPageIndex << 8;
         unsigned int pageDatestamp = (ext_mem_read(baseAddress) << 8) | ext_mem_read(baseAddress + 1);
         if (pageDatestamp < beginningDatestamp || pageDatestamp == 0xffff) {
             break;
@@ -399,7 +414,7 @@ void collectMonthData(void) {
     unsigned char byteIndex = (minuteOfDay / 6) + 2;
     for (count = 0; count < 360; count++) {
         //Get datestamp of prospective page
-        unsigned short long baseAddress = thisPageIndex << 8;
+        uint32_t baseAddress = thisPageIndex << 8;
         unsigned int pageDatestamp = (ext_mem_read(baseAddress) << 8) | ext_mem_read(baseAddress + 1);
         if (pageDatestamp < beginningDatestamp || pageDatestamp == 0xffff) {
             break;
@@ -437,9 +452,9 @@ void collectYearData(void) {
     unsigned int thisPageIndex = currentEEPROMPage - 1;
     for (count = 0; count < 365; count++) {
         //Get datestamp of prospective page
-        unsigned short long address = thisPageIndex << 8;
+        uint32_t address = thisPageIndex << 8;
         unsigned int pageDatestamp = (ext_mem_read(address) << 8) | ext_mem_read(address + 1);
-        if (pageDatestamp < beginningDatestamp || pageDatestamp == 0xffff) {
+        if ((pageDatestamp < beginningDatestamp && pageDatestamp > 0) || pageDatestamp == 0xffff) {
             break;
         }
 

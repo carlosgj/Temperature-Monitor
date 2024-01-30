@@ -1,0 +1,5 @@
+dist/
+build/
+nbproject/private
+nbproject/Makefile-*
+gitVersion.h

@@ -3,23 +3,23 @@
 void serialInit(void){
     //Configure pin
     THERM_TRIS = INPUT;
-    RX1PPS = 0b00010101; //C5
+    //RX1PPS = 0b00010101; //C5
     
     //Setup BRG
-    BAUD1CONbits.BRG16 = TRUE;
-    TX1STAbits.CSRC = TRUE;
-    TX1STAbits.BRGH = TRUE;
-    SP1BRGH = 0x06;
-    SP1BRGL = 0x82;
+    //BAUD1CONbits.BRG16 = TRUE;
+    //TX1STAbits.CSRC = TRUE;
+    //TX1STAbits.BRGH = TRUE;
+    //SP1BRGH = 0x06;
+    //SP1BRGL = 0x82;
     
     //Enable receiver
-    RC1STAbits.CREN = TRUE;
+    //RC1STAbits.CREN = TRUE;
     
     //Enable receive interrupt
-    PIE3bits.RC1IE = TRUE;
+    //PIE3bits.RC1IE = TRUE;
     
     //Enable port
-    RC1STAbits.SPEN = TRUE;
+    //RC1STAbits.SPEN = TRUE;
 }
 
 void processMessage(void){

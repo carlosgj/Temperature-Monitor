@@ -1,7 +1,9 @@
 #ifndef SPI_H
 #define	SPI_H
 
-#include <xc.h> // include processor files - each processor file is guarded.  
+#include "common.h"
+#include "pindef.h"
+
 void SPIInit(); 
 unsigned char SPI1Transfer(unsigned char data);
 unsigned char SPI2Transfer(unsigned char data);

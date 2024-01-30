@@ -1,7 +1,7 @@
 #ifndef DISPLAY_H
 #define	DISPLAY_H
 
-#include <xc.h> 
+#include "common.h"
 #include "Adafruit_RA8875.h"
 #include "serial.h"
 
@@ -24,7 +24,8 @@
 //Number of pixels off the bottom of the graph of the max temperature
 #define GRAPH_MAX_PIXEL (GRAPH_TICK_INTERVAL*((MAX_GRAPH_TEMP - MIN_GRAPH_TEMP) / 10))
 
-#define PRINT(X) RA8875_textWrite(X, sizeof(X)-1)
+//#define PRINT(X) RA8875_textWrite(X, sizeof(X)-1)
+#define PRINT(X)
 
 #define DISP_MODE_HOME      0
 #define DISP_MODE_UTIL      1
