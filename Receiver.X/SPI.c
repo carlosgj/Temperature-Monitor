@@ -27,14 +27,6 @@ void SPIInit(){
     MOSI2_TRIS = OUTPUT;
     MISO2_TRIS = INPUT;
     
-    RTC_CS_TRIS = OUTPUT;
-    MEM1_CS_TRIS = OUTPUT;
-    MEM2_CS_TRIS = OUTPUT;
-    
-    RTC_CS_LAT = FALSE;
-    MEM1_CS_LAT = TRUE;
-    MEM2_CS_LAT = TRUE;
-    
     //Set up inputs
     //SSP2CLKPPS = 0b00001001; //SSP2 clk in on B1
     //SSP2DATPPS = 0b00001010; //SSP2 MISO on B2 

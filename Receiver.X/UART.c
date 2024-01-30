@@ -1,7 +1,7 @@
 #include "UART.h"
 
 void debug_UART_init(void){
-    FIFOInit(&DbgUARTRxBuf);
+    //FIFOInit(&DbgUARTRxBuf); //TODO (shrunk to get FAT code to compile)
     
     //Setup UART pins
     //RB2 is input
@@ -38,5 +38,5 @@ void putch(unsigned char theByte){
 }
 
 void __interrupt(irq(U2RX),high_priority) DbgUARTRxISR(void){
-    FIFOPush(&DbgUARTRxBuf, U2RXB);
+    //FIFOPush(&DbgUARTRxBuf, U2RXB); //TODO (shrunk to get FAT code to compile)
 }

@@ -3,7 +3,7 @@
 #include "common.h"
 #include "display.h"
 #include "pindef.h"
-#include "DS3234.h"
+#include "DS1374.h"
 #include "memory.h"
 
 unsigned char displayInit(void) {

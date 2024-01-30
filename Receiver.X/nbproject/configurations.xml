@@ -4,6 +4,16 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <logicalFolder name="fatfs" displayName="fatfs" projectFiles="true">
+        <itemPath>fatfs/fatfs_demo.h</itemPath>
+        <itemPath>fatfs/integer.h</itemPath>
+        <itemPath>fatfs/diskio.h</itemPath>
+        <itemPath>fatfs/ffconf.h</itemPath>
+        <itemPath>fatfs/ff.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="sd_spi" displayName="sd_spi" projectFiles="true">
+        <itemPath>sd_spi/sd_spi.h</itemPath>
+      </logicalFolder>
       <itemPath>main.h</itemPath>
       <itemPath>common.h</itemPath>
       <itemPath>SPI.h</itemPath>
@@ -25,6 +35,16 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="fatfs" displayName="fatfs" projectFiles="true">
+        <itemPath>fatfs/ffunicode.c</itemPath>
+        <itemPath>fatfs/diskio.c</itemPath>
+        <itemPath>fatfs/ff.c</itemPath>
+        <itemPath>fatfs/ffsystem.c</itemPath>
+        <itemPath>fatfs/fatfs_demo.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="sd_spi" displayName="sd_spi" projectFiles="true">
+        <itemPath>sd_spi/sd_spi.c</itemPath>
+      </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>SPI.c</itemPath>
       <itemPath>Adafruit_RA8875.c</itemPath>
@@ -41,6 +61,7 @@
                    displayName="Important Files"
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
+      <itemPath>Receiver.mc3</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
