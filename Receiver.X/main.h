@@ -3,16 +3,15 @@
 
 #include "common.h"
 #include "RFM69.h"
-#include "DS3234.h"
 #include "RFM69registers.h"
 #include "Adafruit_RA8875.h"
 #include "display.h"
-#include "memory.h"
 #include "therm.h"
 #include "serial.h"
 #include "config.h"
 #include "UART.h"
 #include "SPI.h"
+#include "I2C.h"
 
 #define FAST_TASKS_RATE 100
 #define SLOW_TASKS_RATE 10000

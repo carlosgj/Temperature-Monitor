@@ -78,6 +78,16 @@ unsigned char init(void) {
         printf("ADC initialized.\n");
     }
     
+    //Initialize I2C
+    printf("Initializing I2C...\n");
+    initErrorCode = I2C_init();
+    if(initErrorCode != 0){
+        printf("I2C init error %d!\n", initErrorCode);
+        initError = TRUE;
+    }
+    else{
+        printf("I2C initialized.\n");
+    }
     
     //Initialize RTC & get current timestamp
     //DEBUG CODE!
@@ -273,12 +283,12 @@ void run(void) {
 void updateButtons(void) {
     oldButtonState.all = buttonState.all;
 
-    buttonState.B1 = !BUTTON1_PORT;
-    buttonState.B2 = !BUTTON2_PORT;
-    buttonState.B3 = !BUTTON3_PORT;
-    buttonState.B4 = !BUTTON4_PORT;
-    buttonState.B5 = !BUTTON5_PORT;
-    buttonState.B6 = !BUTTON6_PORT;
+//    buttonState.B1 = !BUTTON1_PORT;
+//    buttonState.B2 = !BUTTON2_PORT;
+//    buttonState.B3 = !BUTTON3_PORT;
+//    buttonState.B4 = !BUTTON4_PORT;
+//    buttonState.B5 = !BUTTON5_PORT;
+//    buttonState.B6 = !BUTTON6_PORT;
 
     buttonPressed.all = buttonState.all & ~oldButtonState.all;
 }

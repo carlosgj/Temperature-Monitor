@@ -1,10 +1,9 @@
-#ifndef DS3234_H
-#define	DS3234_H
+#ifndef DS1374_H
+#define	DS1374_H
 
 #include <xc.h> 
 #include "common.h"
-#include "pindef.h"
-#include "SPI.h"
+#include "I2C.h"
 
 #define REG_SECOND          0x00
 #define REG_MINUTE          0x01
@@ -53,7 +52,6 @@ unsigned char allRegs[7];
 
 void writeRTCReg(unsigned char address, unsigned char data);
 unsigned char readRTCReg(unsigned char address);
-void formatTime(unsigned char seconds, unsigned char minutes, unsigned char hours, unsigned char date, unsigned char month, unsigned int year);
 void getTime(void);
 void setTime(void);
 void readAll(void);
