@@ -10,5 +10,4 @@ COSMOS/TempMonitor/lib/
 COSMOS/TempMonitor/Gemfile.lock
 COSMOS/TempMonitor/Gemfile.lock.old
 COSMOS/TempMonitor/Gemfile
-Receiver.X/build/
-Receiver.X/dist/
+*.*#*
