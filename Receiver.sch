@@ -8154,17 +8154,25 @@ straight</description>
 </symbol>
 <symbol name="DS1374C">
 <pin name="VCC" x="0" y="15.24" length="middle" rot="R270"/>
-<pin name="GND" x="0" y="-17.78" length="middle" rot="R90"/>
-<pin name="SQW" x="15.24" y="5.08" length="middle" rot="R180"/>
-<pin name="!RST" x="-15.24" y="-7.62" length="middle"/>
-<pin name="SCL" x="-15.24" y="5.08" length="middle"/>
-<pin name="SDA" x="-15.24" y="2.54" length="middle"/>
-<pin name="!INT" x="-15.24" y="-2.54" length="middle"/>
-<pin name="VBACKUP" x="15.24" y="0" length="middle" rot="R180"/>
-<wire x1="-10.16" y1="10.16" x2="10.16" y2="10.16" width="0.254" layer="94"/>
-<wire x1="10.16" y1="10.16" x2="10.16" y2="-12.7" width="0.254" layer="94"/>
-<wire x1="10.16" y1="-12.7" x2="-10.16" y2="-12.7" width="0.254" layer="94"/>
-<wire x1="-10.16" y1="-12.7" x2="-10.16" y2="10.16" width="0.254" layer="94"/>
+<pin name="GND" x="5.08" y="-17.78" length="middle" rot="R90"/>
+<pin name="SQW" x="20.32" y="5.08" length="middle" rot="R180"/>
+<pin name="!RST" x="-20.32" y="-7.62" length="middle"/>
+<pin name="SCL" x="-20.32" y="5.08" length="middle"/>
+<pin name="SDA" x="-20.32" y="2.54" length="middle"/>
+<pin name="!INT" x="-20.32" y="-2.54" length="middle"/>
+<pin name="VBACKUP" x="20.32" y="0" length="middle" rot="R180"/>
+<wire x1="-15.24" y1="10.16" x2="15.24" y2="10.16" width="0.254" layer="94"/>
+<wire x1="15.24" y1="10.16" x2="15.24" y2="-12.7" width="0.254" layer="94"/>
+<wire x1="15.24" y1="-12.7" x2="-15.24" y2="-12.7" width="0.254" layer="94"/>
+<wire x1="-15.24" y1="-12.7" x2="-15.24" y2="10.16" width="0.254" layer="94"/>
+<pin name="NC@5" x="2.54" y="-17.78" length="middle" rot="R90"/>
+<pin name="NC@4" x="0" y="-17.78" length="middle" rot="R90"/>
+<pin name="NC@7" x="10.16" y="-17.78" length="middle" rot="R90"/>
+<pin name="NC@8" x="12.7" y="-17.78" length="middle" rot="R90"/>
+<pin name="NC@6" x="7.62" y="-17.78" length="middle" rot="R90"/>
+<pin name="NC@3" x="-2.54" y="-17.78" length="middle" rot="R90"/>
+<pin name="NC@2" x="-5.08" y="-17.78" length="middle" rot="R90"/>
+<pin name="NC@1" x="-7.62" y="-17.78" length="middle" rot="R90"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -8313,6 +8321,14 @@ wire to board 1.25 mm (.049 inch) pitch header</description>
 <connect gate="G$1" pin="!INT" pad="2"/>
 <connect gate="G$1" pin="!RST" pad="14"/>
 <connect gate="G$1" pin="GND" pad="15"/>
+<connect gate="G$1" pin="NC@1" pad="5"/>
+<connect gate="G$1" pin="NC@2" pad="6"/>
+<connect gate="G$1" pin="NC@3" pad="7"/>
+<connect gate="G$1" pin="NC@4" pad="8"/>
+<connect gate="G$1" pin="NC@5" pad="9"/>
+<connect gate="G$1" pin="NC@6" pad="10"/>
+<connect gate="G$1" pin="NC@7" pad="11"/>
+<connect gate="G$1" pin="NC@8" pad="12"/>
 <connect gate="G$1" pin="SCL" pad="1"/>
 <connect gate="G$1" pin="SDA" pad="16"/>
 <connect gate="G$1" pin="SQW" pad="3"/>
@@ -12142,8 +12158,8 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <part name="TP3V3" library="testpad" deviceset="TP" device="B2,54"/>
 <part name="R1" library="resistor" deviceset="R-US_" device="R1206" value="10k"/>
 <part name="+3V5" library="supply1" deviceset="+3V3" device=""/>
-<part name="C5" library="resistor" deviceset="C-EU" device="C1206"/>
-<part name="C6" library="resistor" deviceset="C-EU" device="C1206"/>
+<part name="C5" library="resistor" deviceset="C-EU" device="C1206" value="10uF"/>
+<part name="C6" library="resistor" deviceset="C-EU" device="C1206" value="0.1uF"/>
 <part name="SUPPLY5" library="supply2" deviceset="GND" device=""/>
 <part name="SUPPLY6" library="supply2" deviceset="GND" device=""/>
 <part name="TPCLKOUT" library="testpad" deviceset="TP" device="B2,54"/>
@@ -12247,10 +12263,10 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <instance part="RA8875" gate="-10" x="172.72" y="119.38"/>
 <instance part="U5" gate="G$1" x="71.12" y="91.44"/>
 <instance part="+3V9" gate="G$1" x="71.12" y="109.22"/>
-<instance part="SUPPLY16" gate="GND" x="71.12" y="71.12"/>
+<instance part="SUPPLY16" gate="GND" x="76.2" y="68.58"/>
 <instance part="U$3" gate="G$1" x="96.52" y="83.82"/>
 <instance part="SUPPLY17" gate="GND" x="91.44" y="81.28"/>
-<instance part="TPSQW" gate="G$1" x="91.44" y="99.06"/>
+<instance part="TPSQW" gate="G$1" x="99.06" y="99.06"/>
 <instance part="I2C-DBG" gate="J$1" x="22.86" y="93.98"/>
 <instance part="SUPPLY18" gate="GND" x="30.48" y="88.9"/>
 <instance part="BTNB" gate="-1" x="-33.02" y="48.26"/>
@@ -12375,6 +12391,30 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <segment>
 <pinref part="U5" gate="G$1" pin="GND"/>
 <pinref part="SUPPLY16" gate="GND" pin="GND"/>
+<wire x1="76.2" y1="71.12" x2="76.2" y2="73.66" width="0.1524" layer="91"/>
+<pinref part="U5" gate="G$1" pin="NC@5"/>
+<wire x1="73.66" y1="73.66" x2="76.2" y2="73.66" width="0.1524" layer="91"/>
+<junction x="76.2" y="73.66"/>
+<pinref part="U5" gate="G$1" pin="NC@6"/>
+<wire x1="76.2" y1="73.66" x2="78.74" y2="73.66" width="0.1524" layer="91"/>
+<pinref part="U5" gate="G$1" pin="NC@7"/>
+<wire x1="78.74" y1="73.66" x2="81.28" y2="73.66" width="0.1524" layer="91"/>
+<junction x="78.74" y="73.66"/>
+<pinref part="U5" gate="G$1" pin="NC@8"/>
+<wire x1="81.28" y1="73.66" x2="83.82" y2="73.66" width="0.1524" layer="91"/>
+<junction x="81.28" y="73.66"/>
+<pinref part="U5" gate="G$1" pin="NC@4"/>
+<wire x1="73.66" y1="73.66" x2="71.12" y2="73.66" width="0.1524" layer="91"/>
+<junction x="73.66" y="73.66"/>
+<pinref part="U5" gate="G$1" pin="NC@3"/>
+<wire x1="71.12" y1="73.66" x2="68.58" y2="73.66" width="0.1524" layer="91"/>
+<junction x="71.12" y="73.66"/>
+<pinref part="U5" gate="G$1" pin="NC@2"/>
+<wire x1="68.58" y1="73.66" x2="66.04" y2="73.66" width="0.1524" layer="91"/>
+<junction x="68.58" y="73.66"/>
+<pinref part="U5" gate="G$1" pin="NC@1"/>
+<wire x1="66.04" y1="73.66" x2="63.5" y2="73.66" width="0.1524" layer="91"/>
+<junction x="66.04" y="73.66"/>
 </segment>
 <segment>
 <pinref part="U$3" gate="G$1" pin="-"/>
@@ -12402,9 +12442,9 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <junction x="170.18" y="134.62"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="RC3"/>
-<wire x1="109.22" y1="22.86" x2="111.76" y2="22.86" width="0.1524" layer="91"/>
-<label x="111.76" y="22.86" size="1.778" layer="95"/>
+<pinref part="U1" gate="G$1" pin="RC2"/>
+<wire x1="109.22" y1="25.4" x2="111.76" y2="25.4" width="0.1524" layer="91"/>
+<label x="111.76" y="25.4" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="MISO1" class="0">
@@ -12417,9 +12457,9 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <junction x="170.18" y="132.08"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="RC2"/>
-<wire x1="109.22" y1="25.4" x2="111.76" y2="25.4" width="0.1524" layer="91"/>
-<label x="111.76" y="25.4" size="1.778" layer="95"/>
+<pinref part="U1" gate="G$1" pin="RC1"/>
+<wire x1="109.22" y1="27.94" x2="111.76" y2="27.94" width="0.1524" layer="91"/>
+<label x="111.76" y="27.94" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="MISO2" class="0">
@@ -12570,9 +12610,9 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <junction x="170.18" y="129.54"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="RC1"/>
-<wire x1="109.22" y1="27.94" x2="111.76" y2="27.94" width="0.1524" layer="91"/>
-<label x="111.76" y="27.94" size="1.778" layer="95"/>
+<pinref part="U1" gate="G$1" pin="RC0"/>
+<wire x1="109.22" y1="30.48" x2="111.76" y2="30.48" width="0.1524" layer="91"/>
+<label x="111.76" y="30.48" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="RF-CS" class="0">
@@ -12592,7 +12632,7 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <label x="172.72" y="5.08" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="RA8875-CS" class="0">
+<net name="RA8875_CS" class="0">
 <segment>
 <label x="162.56" y="127" size="1.778" layer="95" rot="R180"/>
 <wire x1="162.56" y1="127" x2="170.18" y2="127" width="0.1524" layer="91"/>
@@ -12607,7 +12647,7 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <label x="111.76" y="-10.16" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="RA8875-WAIT" class="0">
+<net name="RA8875_WAIT" class="0">
 <segment>
 <label x="162.56" y="121.92" size="1.778" layer="95" rot="R180"/>
 <wire x1="162.56" y1="121.92" x2="170.18" y2="121.92" width="0.1524" layer="91"/>
@@ -12622,22 +12662,7 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <label x="111.76" y="-5.08" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="RA8875-INT" class="0">
-<segment>
-<label x="162.56" y="119.38" size="1.778" layer="95" rot="R180"/>
-<wire x1="162.56" y1="119.38" x2="170.18" y2="119.38" width="0.1524" layer="91"/>
-<pinref part="RA8875" gate="-10" pin="S"/>
-<pinref part="RA8875-DBG" gate="G$1" pin="9"/>
-<wire x1="170.18" y1="119.38" x2="185.42" y2="119.38" width="0.1524" layer="91"/>
-<junction x="170.18" y="119.38"/>
-</segment>
-<segment>
-<pinref part="U1" gate="G$1" pin="RC4"/>
-<wire x1="109.22" y1="20.32" x2="111.76" y2="20.32" width="0.1524" layer="91"/>
-<label x="111.76" y="20.32" size="1.778" layer="95"/>
-</segment>
-</net>
-<net name="RF-DIO0" class="0">
+<net name="RF_DIO0" class="0">
 <segment>
 <pinref part="U2" gate="G$1" pin="DIO0"/>
 <wire x1="210.82" y1="86.36" x2="190.5" y2="86.36" width="0.1524" layer="91"/>
@@ -12649,9 +12674,9 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <label x="172.72" y="10.16" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="RC7"/>
-<wire x1="109.22" y1="12.7" x2="111.76" y2="12.7" width="0.1524" layer="91"/>
-<label x="111.76" y="12.7" size="1.778" layer="95"/>
+<pinref part="U1" gate="G$1" pin="RB2"/>
+<wire x1="35.56" y1="2.54" x2="30.48" y2="2.54" width="0.1524" layer="91"/>
+<label x="30.48" y="2.54" size="1.778" layer="95" rot="R180"/>
 </segment>
 </net>
 <net name="N$4" class="0">
@@ -12666,7 +12691,7 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <junction x="38.1" y="154.94"/>
 </segment>
 </net>
-<net name="RA8875-RST" class="0">
+<net name="RA8875_RST" class="0">
 <segment>
 <label x="162.56" y="124.46" size="1.778" layer="95" rot="R180"/>
 <wire x1="162.56" y1="124.46" x2="170.18" y2="124.46" width="0.1524" layer="91"/>
@@ -12727,7 +12752,7 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <wire x1="27.94" y1="15.24" x2="35.56" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="SD-CS" class="0">
+<net name="SD_CS" class="0">
 <segment>
 <pinref part="J1" gate="G$1" pin="CD/DAT3"/>
 <wire x1="281.94" y1="71.12" x2="276.86" y2="71.12" width="0.1524" layer="91"/>
@@ -12742,13 +12767,6 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <pinref part="SPI2-DBG" gate="G$1" pin="8"/>
 <wire x1="170.18" y1="12.7" x2="172.72" y2="12.7" width="0.1524" layer="91"/>
 <label x="172.72" y="12.7" size="1.778" layer="95"/>
-</segment>
-</net>
-<net name="N$9" class="0">
-<segment>
-<pinref part="U1" gate="G$1" pin="RC0"/>
-<wire x1="109.22" y1="30.48" x2="111.76" y2="30.48" width="0.1524" layer="91"/>
-<label x="111.76" y="30.48" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="RA8875-LITE" class="0">
@@ -12773,14 +12791,14 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <label x="-20.32" y="121.92" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="RB2"/>
-<wire x1="35.56" y1="2.54" x2="33.02" y2="2.54" width="0.1524" layer="91"/>
-<label x="33.02" y="2.54" size="1.778" layer="95" rot="R180"/>
-</segment>
-<segment>
 <pinref part="UARTDBG" gate="-3" pin="S"/>
 <wire x1="-10.16" y1="12.7" x2="-12.7" y2="12.7" width="0.1524" layer="91"/>
 <label x="-12.7" y="12.7" size="1.778" layer="95" rot="R180"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="RB4"/>
+<wire x1="35.56" y1="-2.54" x2="30.48" y2="-2.54" width="0.1524" layer="91"/>
+<label x="30.48" y="-2.54" size="1.778" layer="95" rot="R180"/>
 </segment>
 </net>
 <net name="UARTTX" class="0">
@@ -12790,14 +12808,14 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <label x="-20.32" y="119.38" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U1" gate="G$1" pin="RB1"/>
-<wire x1="35.56" y1="5.08" x2="33.02" y2="5.08" width="0.1524" layer="91"/>
-<label x="33.02" y="5.08" size="1.778" layer="95" rot="R180"/>
-</segment>
-<segment>
 <pinref part="UARTDBG" gate="-2" pin="S"/>
 <wire x1="-10.16" y1="7.62" x2="-12.7" y2="7.62" width="0.1524" layer="91"/>
 <label x="-12.7" y="7.62" size="1.778" layer="95" rot="R180"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="RB3"/>
+<wire x1="35.56" y1="0" x2="30.48" y2="0" width="0.1524" layer="91"/>
+<label x="30.48" y="0" size="1.778" layer="95" rot="R180"/>
 </segment>
 </net>
 <net name="N$6" class="0">
@@ -12832,49 +12850,54 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <net name="CLK_RST" class="0">
 <segment>
 <pinref part="U5" gate="G$1" pin="!RST"/>
-<wire x1="55.88" y1="83.82" x2="50.8" y2="83.82" width="0.1524" layer="91"/>
-<label x="50.8" y="83.82" size="1.778" layer="95" rot="R180"/>
+<label x="45.72" y="83.82" size="1.778" layer="95" rot="R180"/>
+<wire x1="50.8" y1="83.82" x2="45.72" y2="83.82" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="RA7/CLKIN"/>
+<wire x1="35.56" y1="12.7" x2="30.48" y2="12.7" width="0.1524" layer="91"/>
+<label x="30.48" y="12.7" size="1.778" layer="95" rot="R180"/>
 </segment>
 </net>
 <net name="SDA" class="0">
 <segment>
 <pinref part="U5" gate="G$1" pin="SDA"/>
-<wire x1="55.88" y1="93.98" x2="50.8" y2="93.98" width="0.1524" layer="91"/>
-<label x="50.8" y="93.98" size="1.778" layer="95" rot="R180"/>
-</segment>
-<segment>
-<pinref part="U1" gate="G$1" pin="RB4"/>
-<wire x1="35.56" y1="-2.54" x2="33.02" y2="-2.54" width="0.1524" layer="91"/>
-<label x="33.02" y="-2.54" size="1.778" layer="95" rot="R180"/>
+<label x="45.72" y="93.98" size="1.778" layer="95" rot="R180"/>
+<wire x1="50.8" y1="93.98" x2="45.72" y2="93.98" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="I2C-DBG" gate="J$1" pin="3"/>
 <wire x1="30.48" y1="96.52" x2="33.02" y2="96.52" width="0.1524" layer="91"/>
 <label x="33.02" y="96.52" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="RC4"/>
+<wire x1="109.22" y1="20.32" x2="111.76" y2="20.32" width="0.1524" layer="91"/>
+<label x="111.76" y="20.32" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="SCL" class="0">
 <segment>
 <pinref part="U5" gate="G$1" pin="SCL"/>
-<wire x1="55.88" y1="96.52" x2="50.8" y2="96.52" width="0.1524" layer="91"/>
-<label x="50.8" y="96.52" size="1.778" layer="95" rot="R180"/>
-</segment>
-<segment>
-<pinref part="U1" gate="G$1" pin="RB5"/>
-<wire x1="35.56" y1="-5.08" x2="33.02" y2="-5.08" width="0.1524" layer="91"/>
-<label x="33.02" y="-5.08" size="1.778" layer="95" rot="R180"/>
+<label x="45.72" y="96.52" size="1.778" layer="95" rot="R180"/>
+<wire x1="50.8" y1="96.52" x2="45.72" y2="96.52" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="I2C-DBG" gate="J$1" pin="2"/>
 <wire x1="30.48" y1="93.98" x2="33.02" y2="93.98" width="0.1524" layer="91"/>
 <label x="33.02" y="93.98" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="RC3"/>
+<wire x1="109.22" y1="22.86" x2="111.76" y2="22.86" width="0.1524" layer="91"/>
+<label x="111.76" y="22.86" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="N$10" class="0">
 <segment>
 <pinref part="U5" gate="G$1" pin="VBACKUP"/>
 <pinref part="U$3" gate="G$1" pin="+"/>
-<wire x1="86.36" y1="91.44" x2="101.6" y2="91.44" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="91.44" x2="101.6" y2="91.44" width="0.1524" layer="91"/>
 <wire x1="101.6" y1="91.44" x2="101.6" y2="86.36" width="0.1524" layer="91"/>
 <pinref part="U$3" gate="G$1" pin="+1"/>
 <wire x1="101.6" y1="86.36" x2="101.6" y2="81.28" width="0.1524" layer="91"/>
@@ -12885,7 +12908,7 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <segment>
 <pinref part="U5" gate="G$1" pin="SQW"/>
 <pinref part="TPSQW" gate="G$1" pin="TP"/>
-<wire x1="86.36" y1="96.52" x2="91.44" y2="96.52" width="0.1524" layer="91"/>
+<wire x1="99.06" y1="96.52" x2="91.44" y2="96.52" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="BTN1" class="0">
@@ -12958,6 +12981,45 @@ Note the THM package has the ground pads on both sides of the PCB so that the ma
 <pinref part="U1" gate="G$1" pin="RA5"/>
 <wire x1="35.56" y1="17.78" x2="30.48" y2="17.78" width="0.1524" layer="91"/>
 <label x="30.48" y="17.78" size="1.778" layer="95" rot="R180"/>
+</segment>
+</net>
+<net name="CLK_INT" class="0">
+<segment>
+<pinref part="U5" gate="G$1" pin="!INT"/>
+<wire x1="50.8" y1="88.9" x2="45.72" y2="88.9" width="0.1524" layer="91"/>
+<label x="45.72" y="88.9" size="1.778" layer="95" rot="R180"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="RB1"/>
+<wire x1="35.56" y1="5.08" x2="30.48" y2="5.08" width="0.1524" layer="91"/>
+<label x="30.48" y="5.08" size="1.778" layer="95" rot="R180"/>
+</segment>
+</net>
+<net name="RA8875_INT" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="RB0"/>
+<wire x1="35.56" y1="7.62" x2="30.48" y2="7.62" width="0.1524" layer="91"/>
+<label x="30.48" y="7.62" size="1.778" layer="95" rot="R180"/>
+</segment>
+<segment>
+<label x="162.56" y="119.38" size="1.778" layer="95" rot="R180"/>
+<wire x1="162.56" y1="119.38" x2="170.18" y2="119.38" width="0.1524" layer="91"/>
+<pinref part="RA8875" gate="-10" pin="S"/>
+<pinref part="RA8875-DBG" gate="G$1" pin="9"/>
+<wire x1="170.18" y1="119.38" x2="185.42" y2="119.38" width="0.1524" layer="91"/>
+<junction x="170.18" y="119.38"/>
+</segment>
+</net>
+<net name="SD_CD" class="0">
+<segment>
+<pinref part="J1" gate="G$1" pin="CD"/>
+<wire x1="281.94" y1="68.58" x2="276.86" y2="68.58" width="0.1524" layer="91"/>
+<label x="276.86" y="68.58" size="1.778" layer="95" rot="R180"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="RC7"/>
+<wire x1="109.22" y1="12.7" x2="111.76" y2="12.7" width="0.1524" layer="91"/>
+<label x="111.76" y="12.7" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>
