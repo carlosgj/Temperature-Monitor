@@ -1,4 +1,3 @@
-#include <xc.h>
 #include "DS1374.h"
 
 void writeRTCReg(uint8_t address, uint8_t data){

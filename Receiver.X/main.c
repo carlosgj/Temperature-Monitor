@@ -46,7 +46,7 @@ unsigned char init(void) {
     INTCON0bits.GIE = TRUE; //Enable interrupts
     
     debug_UART_init();
-    printf("--------------------------\n");
+    printf("\n--------------------------\n");
     printf("Serial initialized.\n");
     printf("Last reset: %d\n", resetCause);
     printf("Temperature Monitor\n");

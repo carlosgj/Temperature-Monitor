@@ -4,6 +4,7 @@
 #include <xc.h> 
 #include "common.h"
 #include "I2C.h"
+#include "datetime.h"
 
 #define REG_SECOND          0x00
 #define REG_MINUTE          0x01
@@ -15,38 +16,6 @@
 
 #define REG_CONTROL         0x0f
 #define REG_STAT    0x10
-
-union bcd {
-    unsigned char all;
-    struct{
-        unsigned ones   :4;
-        unsigned tens   :3;
-    };
-};
-
-union hour_t{
-    unsigned char all;
-    struct{
-        unsigned ones   :4;
-        unsigned tens   :2;
-        unsigned n24    :1;
-        unsigned ZERO   :1;
-    };
-};
-
-union bcd seconds_reg;
-union bcd minutes_reg;
-union hour_t hours_reg;
-union bcd date_reg;
-union bcd month_reg;
-union bcd years_reg;
-
-union bcd pros_seconds;
-union bcd pros_minutes;
-union hour_t pros_hours;
-union bcd pros_date;
-union bcd pros_month;
-union bcd pros_years;
 
 unsigned char allRegs[7];
 

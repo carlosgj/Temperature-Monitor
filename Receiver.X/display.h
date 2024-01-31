@@ -4,6 +4,7 @@
 #include "common.h"
 #include "Adafruit_RA8875.h"
 #include "serial.h"
+#include "datetime.h"
 
 #define WIDTH 800
 #define HEIGHT 480
