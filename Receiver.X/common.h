@@ -6,7 +6,10 @@
 #include <stdio.h>
 #include "FIFO.h"
 #include "gitVersion.h"
+#include "pindef.h"
 #include "fatfs/ff.h"
+
+#pragma warning disable 520
 
 #define TRUE 1
 #define FALSE 0

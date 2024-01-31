@@ -126,8 +126,8 @@ void RA8875_initialize(void) {
     unsigned char hsync_finetune;
     unsigned char hsync_nondisp;
     unsigned char vsync_pw;
-    unsigned int vsync_nondisp;
-    unsigned int vsync_start;
+    uint16_t vsync_nondisp;
+    uint16_t vsync_start;
 
     /* Set the correct values for the display being used */
     if (_size == RA8875_480x272) {
@@ -156,32 +156,32 @@ void RA8875_initialize(void) {
     __delay_ms(1);
 
     /* Horizontal settings registers */
-    RA8875_writeReg(RA8875_HDWR, (_width / 8) - 1); // H width: (HDWR + 1) * 8 = 480
+    RA8875_writeReg(RA8875_HDWR, (uint8_t)(_width / 8) - 1); // H width: (HDWR + 1) * 8 = 480
     RA8875_writeReg(RA8875_HNDFTR, RA8875_HNDFTR_DE_HIGH + hsync_finetune);
     RA8875_writeReg(RA8875_HNDR, (hsync_nondisp - hsync_finetune - 2) / 8); // H non-display: HNDR * 8 + HNDFTR + 2 = 10
     RA8875_writeReg(RA8875_HSTR, hsync_start / 8 - 1); // Hsync start: (HSTR + 1)*8 
     RA8875_writeReg(RA8875_HPWR, RA8875_HPWR_LOW + (hsync_pw / 8 - 1)); // HSync pulse width = (HPWR+1) * 8
 
     /* Vertical settings registers */
-    RA8875_writeReg(RA8875_VDHR0, (unsigned int) (_height - 1) & 0xFF);
-    RA8875_writeReg(RA8875_VDHR1, (unsigned int) (_height - 1) >> 8);
-    RA8875_writeReg(RA8875_VNDR0, vsync_nondisp - 1); // V non-display period = VNDR + 1
-    RA8875_writeReg(RA8875_VNDR1, vsync_nondisp >> 8);
-    RA8875_writeReg(RA8875_VSTR0, vsync_start - 1); // Vsync start position = VSTR + 1
-    RA8875_writeReg(RA8875_VSTR1, vsync_start >> 8);
+    RA8875_writeReg(RA8875_VDHR0, (uint16_t) (_height - 1) & 0xFF);
+    RA8875_writeReg(RA8875_VDHR1, (uint16_t) (_height - 1) >> 8);
+    RA8875_writeReg(RA8875_VNDR0, (uint8_t)(vsync_nondisp - 1)); // V non-display period = VNDR + 1
+    RA8875_writeReg(RA8875_VNDR1, (uint8_t)(vsync_nondisp >> 8));
+    RA8875_writeReg(RA8875_VSTR0, (uint8_t)(vsync_start - 1)); // Vsync start position = VSTR + 1
+    RA8875_writeReg(RA8875_VSTR1, (uint8_t)(vsync_start >> 8));
     RA8875_writeReg(RA8875_VPWR, RA8875_VPWR_LOW + vsync_pw - 1); // Vsync pulse width = VPWR + 1
 
     /* Set active window X */
     RA8875_writeReg(RA8875_HSAW0, 0); // horizontal start point
     RA8875_writeReg(RA8875_HSAW1, 0);
-    RA8875_writeReg(RA8875_HEAW0, (unsigned int) (_width - 1) & 0xFF); // horizontal end point
-    RA8875_writeReg(RA8875_HEAW1, (unsigned int) (_width - 1) >> 8);
+    RA8875_writeReg(RA8875_HEAW0, (uint16_t) (_width - 1) & 0xFF); // horizontal end point
+    RA8875_writeReg(RA8875_HEAW1, (uint16_t) (_width - 1) >> 8);
 
     /* Set active window Y */
     RA8875_writeReg(RA8875_VSAW0, 0); // vertical start point
     RA8875_writeReg(RA8875_VSAW1, 0);
-    RA8875_writeReg(RA8875_VEAW0, (unsigned int) (_height - 1) & 0xFF); // horizontal end point
-    RA8875_writeReg(RA8875_VEAW1, (unsigned int) (_height - 1) >> 8);
+    RA8875_writeReg(RA8875_VEAW0, (uint16_t) (_height - 1) & 0xFF); // horizontal end point
+    RA8875_writeReg(RA8875_VEAW1, (uint16_t) (_height - 1) >> 8);
 
     /* ToDo: Setup touch panel? */
 
@@ -198,7 +198,7 @@ void RA8875_initialize(void) {
  */
 
 /**************************************************************************/
-unsigned int RA8875_width(void) {
+uint16_t RA8875_width(void) {
     return _width;
 }
 
@@ -210,7 +210,7 @@ unsigned int RA8875_width(void) {
  */
 
 /**************************************************************************/
-unsigned int RA8875_height(void) {
+uint16_t RA8875_height(void) {
     return _height;
 }
 
@@ -245,7 +245,7 @@ void RA8875_textMode(void) {
  */
 
 /**************************************************************************/
-void RA8875_textSetCursor(unsigned int x, unsigned int y) {
+void RA8875_textSetCursor(uint16_t x, uint16_t y) {
     /* Set cursor location */
     RA8875_writeCommand(0x2A);
     RA8875_writeData(x & 0xFF);
@@ -266,7 +266,7 @@ void RA8875_textSetCursor(unsigned int x, unsigned int y) {
  */
 
 /**************************************************************************/
-void RA8875_textColor(unsigned int foreColor, unsigned int bgColor) {
+void RA8875_textColor(uint16_t foreColor, uint16_t bgColor) {
     /* Set Fore Color */
     RA8875_writeCommand(0x63);
     RA8875_writeData((foreColor & 0xf800) >> 11);
@@ -298,7 +298,7 @@ void RA8875_textColor(unsigned int foreColor, unsigned int bgColor) {
  */
 
 /**************************************************************************/
-void RA8875_textTransparent(unsigned int foreColor) {
+void RA8875_textTransparent(uint16_t foreColor) {
     /* Set Fore Color */
     RA8875_writeCommand(0x63);
     RA8875_writeData((foreColor & 0xf800) >> 11);
@@ -350,9 +350,9 @@ void RA8875_textEnlarge(unsigned char scale) {
  */
 
 /**************************************************************************/
-void RA8875_textWrite(const char* buffer, unsigned int len) {
+void RA8875_textWrite(const char* buffer, uint16_t len) {
     RA8875_writeCommand(RA8875_MRWC);
-    for (unsigned int i = 0; i < len; i++) {
+    for (uint16_t i = 0; i < len; i++) {
         if(buffer[i] == '\n'){
             switch(_textScale){
                 case 0:
@@ -417,11 +417,11 @@ unsigned char RA8875_waitPoll(unsigned char regname, unsigned char waitflag) {
  */
 
 /**************************************************************************/
-void RA8875_setXY(unsigned int x, unsigned int y) {
-    RA8875_writeReg(RA8875_CURH0, x);
-    RA8875_writeReg(RA8875_CURH1, x >> 8);
-    RA8875_writeReg(RA8875_CURV0, y);
-    RA8875_writeReg(RA8875_CURV1, y >> 8);
+void RA8875_setXY(uint16_t x, uint16_t y) {
+    RA8875_writeReg(RA8875_CURH0, (uint8_t)x);
+    RA8875_writeReg(RA8875_CURH1, (uint8_t)(x >> 8));
+    RA8875_writeReg(RA8875_CURV0, (uint8_t)y);
+    RA8875_writeReg(RA8875_CURV1, (uint8_t)(y >> 8));
 }
 
 /**************************************************************************/
@@ -433,12 +433,12 @@ void RA8875_setXY(unsigned int x, unsigned int y) {
  */
 
 /**************************************************************************/
-void RA8875_pushPixels(unsigned long num, unsigned int p) {
+void RA8875_pushPixels(unsigned long num, uint16_t p) {
     DISP_CS_LAT = FALSE;
     SPI1Transfer(RA8875_DATAWRITE);
     while (num--) {
-        SPI1Transfer(p >> 8);
-        SPI1Transfer(p);
+        SPI1Transfer((uint8_t)(p >> 8));
+        SPI1Transfer((uint8_t)p);
     }
     DISP_CS_LAT = TRUE;
 }
@@ -465,16 +465,16 @@ void RA8875_fillRect(void) {
  */
 
 /**************************************************************************/
-void RA8875_drawPixel(signed int x, signed int y, unsigned int color) {
-    RA8875_writeReg(RA8875_CURH0, x);
-    RA8875_writeReg(RA8875_CURH1, x >> 8);
-    RA8875_writeReg(RA8875_CURV0, y);
-    RA8875_writeReg(RA8875_CURV1, y >> 8);
+void RA8875_drawPixel(int16_t x, int16_t y, uint16_t color) {
+    RA8875_writeReg(RA8875_CURH0, (uint8_t)x);
+    RA8875_writeReg(RA8875_CURH1, (uint8_t)(x >> 8));
+    RA8875_writeReg(RA8875_CURV0, (uint8_t)y);
+    RA8875_writeReg(RA8875_CURV1, (uint8_t)(y >> 8));
     RA8875_writeCommand(RA8875_MRWC);
     DISP_CS_LAT = FALSE;
     SPI1Transfer(RA8875_DATAWRITE);
-    SPI1Transfer(color >> 8);
-    SPI1Transfer(color);
+    SPI1Transfer((uint8_t)(color >> 8));
+    SPI1Transfer((uint8_t)color);
     DISP_CS_LAT = TRUE;
 }
 
@@ -490,30 +490,30 @@ void RA8875_drawPixel(signed int x, signed int y, unsigned int color) {
  */
 
 /**************************************************************************/
-void RA8875_drawLine(signed int x0, signed int y0, signed int x1, signed int y1, unsigned int color) {
+void RA8875_drawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color) {
     /* Set X */
     RA8875_writeCommand(0x91);
-    RA8875_writeData(x0);
+    RA8875_writeData((uint8_t)x0);
     RA8875_writeCommand(0x92);
-    RA8875_writeData(x0 >> 8);
+    RA8875_writeData((uint8_t)(x0 >> 8));
 
     /* Set Y */
     RA8875_writeCommand(0x93);
-    RA8875_writeData(y0);
+    RA8875_writeData((uint8_t)y0);
     RA8875_writeCommand(0x94);
-    RA8875_writeData(y0 >> 8);
+    RA8875_writeData((uint8_t)(y0 >> 8));
 
     /* Set X1 */
     RA8875_writeCommand(0x95);
-    RA8875_writeData(x1);
+    RA8875_writeData((uint8_t)x1);
     RA8875_writeCommand(0x96);
-    RA8875_writeData((x1) >> 8);
+    RA8875_writeData((uint8_t)(x1 >> 8));
 
     /* Set Y1 */
     RA8875_writeCommand(0x97);
-    RA8875_writeData(y1);
+    RA8875_writeData((uint8_t)y1);
     RA8875_writeCommand(0x98);
-    RA8875_writeData((y1) >> 8);
+    RA8875_writeData((uint8_t)(y1 >> 8));
 
     /* Set Color */
     RA8875_writeCommand(0x63);
@@ -537,7 +537,7 @@ void RA8875_drawLine(signed int x0, signed int y0, signed int x1, signed int y1,
  */
 
 /**************************************************************************/
-void RA8875_drawFastVLine(signed int x, signed int y, signed int h, unsigned int color) {
+void RA8875_drawFastVLine(uint16_t x, uint16_t y, uint16_t h, uint16_t color) {
     RA8875_drawLine(x, y, x, y + h, color);
 }
 
@@ -547,7 +547,7 @@ void RA8875_drawFastVLine(signed int x, signed int y, signed int h, unsigned int
  */
 
 /**************************************************************************/
-void RA8875_drawFastHLine(signed int x, signed int y, signed int w, unsigned int color) {
+void RA8875_drawFastHLine(uint16_t x, uint16_t y, uint16_t w, uint16_t color) {
     RA8875_drawLine(x, y, x + w, y, color);
 }
 
@@ -563,7 +563,7 @@ void RA8875_drawFastHLine(signed int x, signed int y, signed int w, unsigned int
  */
 
 /**************************************************************************/
-void RA8875_drawRect(signed int x, signed int y, signed int w, signed int h, unsigned int color) {
+void RA8875_drawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
     RA8875_rectHelper(x, y, x + w, y + h, color, FALSE);
 }
 
@@ -579,7 +579,7 @@ void RA8875_drawRect(signed int x, signed int y, signed int w, signed int h, uns
  */
 
 /**************************************************************************/
-void RA8875_HWfillRect(signed int x, signed int y, signed int w, signed int h, unsigned int color) {
+void RA8875_HWfillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
     RA8875_rectHelper(x, y, x + w, y + h, color, TRUE);
 }
 
@@ -591,7 +591,7 @@ void RA8875_HWfillRect(signed int x, signed int y, signed int w, signed int h, u
  */
 
 /**************************************************************************/
-void RA8875_fillScreen(unsigned int color) {
+void RA8875_fillScreen(uint16_t color) {
     RA8875_rectHelper(0, 0, _width - 1, _height - 1, color, TRUE);
 }
 
@@ -606,7 +606,7 @@ void RA8875_fillScreen(unsigned int color) {
  */
 
 /**************************************************************************/
-void RA8875_drawCircle(signed int x0, signed int y0, signed int r, unsigned int color) {
+void RA8875_drawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
     RA8875_circleHelper(x0, y0, r, color, FALSE);
 }
 
@@ -621,7 +621,7 @@ void RA8875_drawCircle(signed int x0, signed int y0, signed int r, unsigned int 
  */
 
 /**************************************************************************/
-void RA8875_fillCircle(signed int x0, signed int y0, signed int r, unsigned int color) {
+void RA8875_fillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
     RA8875_circleHelper(x0, y0, r, color, TRUE);
 }
 
@@ -639,7 +639,7 @@ void RA8875_fillCircle(signed int x0, signed int y0, signed int r, unsigned int 
  */
 
 /**************************************************************************/
-void RA8875_drawTriangle(signed int x0, signed int y0, signed int x1, signed int y1, signed int x2, signed int y2, unsigned int color) {
+void RA8875_drawTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color) {
     RA8875_triangleHelper(x0, y0, x1, y1, x2, y2, color, FALSE);
 }
 
@@ -657,7 +657,7 @@ void RA8875_drawTriangle(signed int x0, signed int y0, signed int x1, signed int
  */
 
 /**************************************************************************/
-void RA8875_fillTriangle(signed int x0, signed int y0, signed int x1, signed int y1, signed int x2, signed int y2, unsigned int color) {
+void RA8875_fillTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color) {
     RA8875_triangleHelper(x0, y0, x1, y1, x2, y2, color, TRUE);
 }
 
@@ -673,7 +673,7 @@ void RA8875_fillTriangle(signed int x0, signed int y0, signed int x1, signed int
  */
 
 /**************************************************************************/
-void RA8875_drawEllipse(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned int color) {
+void RA8875_drawEllipse(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, uint16_t color) {
     RA8875_ellipseHelper(xCenter, yCenter, longAxis, shortAxis, color, FALSE);
 }
 
@@ -689,7 +689,7 @@ void RA8875_drawEllipse(signed int xCenter, signed int yCenter, signed int longA
  */
 
 /**************************************************************************/
-void RA8875_fillEllipse(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned int color) {
+void RA8875_fillEllipse(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, uint16_t color) {
     RA8875_ellipseHelper(xCenter, yCenter, longAxis, shortAxis, color, TRUE);
 }
 
@@ -710,7 +710,7 @@ void RA8875_fillEllipse(signed int xCenter, signed int yCenter, signed int longA
  */
 
 /**************************************************************************/
-void RA8875_drawCurve(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned char curvePart, unsigned int color) {
+void RA8875_drawCurve(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, unsigned char curvePart, uint16_t color) {
     RA8875_curveHelper(xCenter, yCenter, longAxis, shortAxis, curvePart, color, FALSE);
 }
 
@@ -731,7 +731,7 @@ void RA8875_drawCurve(signed int xCenter, signed int yCenter, signed int longAxi
  */
 
 /**************************************************************************/
-void RA8875_fillCurve(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned char curvePart, unsigned int color) {
+void RA8875_fillCurve(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, unsigned char curvePart, uint16_t color) {
     RA8875_curveHelper(xCenter, yCenter, longAxis, shortAxis, curvePart, color, TRUE);
 }
 
@@ -741,22 +741,22 @@ void RA8875_fillCurve(signed int xCenter, signed int yCenter, signed int longAxi
  */
 
 /**************************************************************************/
-void RA8875_circleHelper(signed int x0, signed int y0, signed int r, unsigned int color, unsigned char filled) {
+void RA8875_circleHelper(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color, unsigned char filled) {
     /* Set X */
     RA8875_writeCommand(0x99);
-    RA8875_writeData(x0);
+    RA8875_writeData((uint8_t)x0);
     RA8875_writeCommand(0x9a);
-    RA8875_writeData(x0 >> 8);
+    RA8875_writeData((uint8_t)(x0 >> 8));
 
     /* Set Y */
     RA8875_writeCommand(0x9b);
-    RA8875_writeData(y0);
+    RA8875_writeData((uint8_t)y0);
     RA8875_writeCommand(0x9c);
-    RA8875_writeData(y0 >> 8);
+    RA8875_writeData((uint8_t)(y0 >> 8));
 
     /* Set Radius */
     RA8875_writeCommand(0x9d);
-    RA8875_writeData(r);
+    RA8875_writeData((uint8_t)r);
 
     /* Set Color */
     RA8875_writeCommand(0x63);
@@ -784,30 +784,30 @@ void RA8875_circleHelper(signed int x0, signed int y0, signed int r, unsigned in
  */
 
 /**************************************************************************/
-void RA8875_rectHelper(signed int x, signed int y, signed int w, signed int h, unsigned int color, unsigned char filled) {
+void RA8875_rectHelper(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, unsigned char filled) {
     /* Set X */
     RA8875_writeCommand(0x91);
-    RA8875_writeData(x);
+    RA8875_writeData((uint8_t)x);
     RA8875_writeCommand(0x92);
-    RA8875_writeData(x >> 8);
+    RA8875_writeData((uint8_t)(x >> 8));
 
     /* Set Y */
     RA8875_writeCommand(0x93);
-    RA8875_writeData(y);
+    RA8875_writeData((uint8_t)y);
     RA8875_writeCommand(0x94);
-    RA8875_writeData(y >> 8);
+    RA8875_writeData((uint8_t)(y >> 8));
 
     /* Set X1 */
     RA8875_writeCommand(0x95);
-    RA8875_writeData(w);
+    RA8875_writeData((uint8_t)w);
     RA8875_writeCommand(0x96);
-    RA8875_writeData((w) >> 8);
+    RA8875_writeData((uint8_t)(w >> 8));
 
     /* Set Y1 */
     RA8875_writeCommand(0x97);
-    RA8875_writeData(h);
+    RA8875_writeData((uint8_t)h);
     RA8875_writeCommand(0x98);
-    RA8875_writeData((h) >> 8);
+    RA8875_writeData((uint8_t)(h >> 8));
 
     /* Set Color */
     RA8875_writeCommand(0x63);
@@ -835,36 +835,36 @@ void RA8875_rectHelper(signed int x, signed int y, signed int w, signed int h, u
  */
 
 /**************************************************************************/
-void RA8875_triangleHelper(signed int x0, signed int y0, signed int x1, signed int y1, signed int x2, signed int y2, unsigned int color, unsigned char filled) {
+void RA8875_triangleHelper(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color, unsigned char filled) {
     /* Set Point 0 */
     RA8875_writeCommand(0x91);
-    RA8875_writeData(x0);
+    RA8875_writeData((uint8_t)x0);
     RA8875_writeCommand(0x92);
-    RA8875_writeData(x0 >> 8);
+    RA8875_writeData((uint8_t)(x0 >> 8));
     RA8875_writeCommand(0x93);
-    RA8875_writeData(y0);
+    RA8875_writeData((uint8_t)y0);
     RA8875_writeCommand(0x94);
-    RA8875_writeData(y0 >> 8);
+    RA8875_writeData((uint8_t)(y0 >> 8));
 
     /* Set Point 1 */
     RA8875_writeCommand(0x95);
-    RA8875_writeData(x1);
+    RA8875_writeData((uint8_t)x1);
     RA8875_writeCommand(0x96);
-    RA8875_writeData(x1 >> 8);
+    RA8875_writeData((uint8_t)(x1 >> 8));
     RA8875_writeCommand(0x97);
-    RA8875_writeData(y1);
+    RA8875_writeData((uint8_t)y1);
     RA8875_writeCommand(0x98);
-    RA8875_writeData(y1 >> 8);
+    RA8875_writeData((uint8_t)(y1 >> 8));
 
     /* Set Point 2 */
     RA8875_writeCommand(0xA9);
-    RA8875_writeData(x2);
+    RA8875_writeData((uint8_t)x2);
     RA8875_writeCommand(0xAA);
-    RA8875_writeData(x2 >> 8);
+    RA8875_writeData((uint8_t)(x2 >> 8));
     RA8875_writeCommand(0xAB);
-    RA8875_writeData(y2);
+    RA8875_writeData((uint8_t)y2);
     RA8875_writeCommand(0xAC);
-    RA8875_writeData(y2 >> 8);
+    RA8875_writeData((uint8_t)(y2 >> 8));
 
     /* Set Color */
     RA8875_writeCommand(0x63);
@@ -892,26 +892,26 @@ void RA8875_triangleHelper(signed int x0, signed int y0, signed int x1, signed i
  */
 
 /**************************************************************************/
-void RA8875_ellipseHelper(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned int color, unsigned char filled) {
+void RA8875_ellipseHelper(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, uint16_t color, unsigned char filled) {
     /* Set Center Point */
     RA8875_writeCommand(0xA5);
-    RA8875_writeData(xCenter);
+    RA8875_writeData((uint8_t)xCenter);
     RA8875_writeCommand(0xA6);
-    RA8875_writeData(xCenter >> 8);
+    RA8875_writeData((uint8_t)(xCenter >> 8));
     RA8875_writeCommand(0xA7);
-    RA8875_writeData(yCenter);
+    RA8875_writeData((uint8_t)yCenter);
     RA8875_writeCommand(0xA8);
-    RA8875_writeData(yCenter >> 8);
+    RA8875_writeData((uint8_t)(yCenter >> 8));
 
     /* Set Long and Short Axis */
     RA8875_writeCommand(0xA1);
-    RA8875_writeData(longAxis);
+    RA8875_writeData((uint8_t)longAxis);
     RA8875_writeCommand(0xA2);
-    RA8875_writeData(longAxis >> 8);
+    RA8875_writeData((uint8_t)(longAxis >> 8));
     RA8875_writeCommand(0xA3);
-    RA8875_writeData(shortAxis);
+    RA8875_writeData((uint8_t)shortAxis);
     RA8875_writeCommand(0xA4);
-    RA8875_writeData(shortAxis >> 8);
+    RA8875_writeData((uint8_t)(shortAxis >> 8));
 
     /* Set Color */
     RA8875_writeCommand(0x63);
@@ -939,26 +939,26 @@ void RA8875_ellipseHelper(signed int xCenter, signed int yCenter, signed int lon
  */
 
 /**************************************************************************/
-void RA8875_curveHelper(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned char curvePart, unsigned int color, unsigned char filled) {
+void RA8875_curveHelper(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, unsigned char curvePart, uint16_t color, unsigned char filled) {
     /* Set Center Point */
     RA8875_writeCommand(0xA5);
-    RA8875_writeData(xCenter);
+    RA8875_writeData((uint8_t)xCenter);
     RA8875_writeCommand(0xA6);
-    RA8875_writeData(xCenter >> 8);
+    RA8875_writeData((uint8_t)(xCenter >> 8));
     RA8875_writeCommand(0xA7);
-    RA8875_writeData(yCenter);
+    RA8875_writeData((uint8_t)yCenter);
     RA8875_writeCommand(0xA8);
-    RA8875_writeData(yCenter >> 8);
+    RA8875_writeData((uint8_t)(yCenter >> 8));
 
     /* Set Long and Short Axis */
     RA8875_writeCommand(0xA1);
-    RA8875_writeData(longAxis);
+    RA8875_writeData((uint8_t)longAxis);
     RA8875_writeCommand(0xA2);
-    RA8875_writeData(longAxis >> 8);
+    RA8875_writeData((uint8_t)(longAxis >> 8));
     RA8875_writeCommand(0xA3);
-    RA8875_writeData(shortAxis);
+    RA8875_writeData((uint8_t)shortAxis);
     RA8875_writeCommand(0xA4);
-    RA8875_writeData(shortAxis >> 8);
+    RA8875_writeData((uint8_t)(shortAxis >> 8));
 
     /* Set Color */
     RA8875_writeCommand(0x63);

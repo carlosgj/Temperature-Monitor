@@ -838,7 +838,7 @@ void decrementActiveChar(void) {
     switch (activeTimeChar) {
         case ACTIVE_TIME_10YR:
             if (pros_years.tens == 0) {
-                pros_years.tens = 9;
+                pros_years.tens = 7;
             } else {
                 pros_years.tens--;
             }

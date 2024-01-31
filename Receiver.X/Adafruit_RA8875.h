@@ -61,36 +61,36 @@ void RA8875_sleep(unsigned char sleep);
 
 /* Text functions */
 void RA8875_textMode(void);
-void RA8875_textSetCursor(unsigned int x, unsigned int y);
-void RA8875_textColor(unsigned int foreColor, unsigned int bgColor);
-void RA8875_textTransparent(unsigned int foreColor);
+void RA8875_textSetCursor(uint16_t x, uint16_t y);
+void RA8875_textColor(uint16_t foreColor, uint16_t bgColor);
+void RA8875_textTransparent(uint16_t foreColor);
 void RA8875_textEnlarge(unsigned char scale);
-void RA8875_textWrite(const char* buffer, unsigned int len);
+void RA8875_textWrite(const char* buffer, uint16_t len);
 
 /* Graphics functions */
 void RA8875_graphicsMode(void);
-void RA8875_setXY(unsigned int x, unsigned int y);
-void RA8875_pushPixels(unsigned long num, unsigned int p);
+void RA8875_setXY(uint16_t x, uint16_t y);
+void RA8875_pushPixels(unsigned long num, uint16_t p);
 void RA8875_fillRect(void);
 
 /* Adafruit_GFX functions */
-void RA8875_drawPixel(signed int x, signed int y, unsigned int color);
-void RA8875_drawFastVLine(signed int x, signed int y, signed int h, unsigned int color);
-void RA8875_drawFastHLine(signed int x, signed int y, signed int w, unsigned int color);
+void RA8875_drawPixel(int16_t x, int16_t y, uint16_t color);
+void RA8875_drawFastVLine(uint16_t x, uint16_t y, uint16_t h, uint16_t color);
+void RA8875_drawFastHLine(uint16_t x, uint16_t y, uint16_t w, uint16_t color);
 
 /* HW accelerated wrapper functions (override Adafruit_GFX prototypes) */
-void RA8875_fillScreen(unsigned int color);
-void RA8875_drawLine(signed int x0, signed int y0, signed int x1, signed int y1, unsigned int color);
-void RA8875_drawRect(signed int x, signed int y, signed int w, signed int h, unsigned int color);
-void RA8875_HWfillRect(signed int x, signed int y, signed int w, signed int h, unsigned int color);
-void RA8875_drawCircle(signed int x0, signed int y0, signed int r, unsigned int color);
-void RA8875_fillCircle(signed int x0, signed int y0, signed int r, unsigned int color);
-void RA8875_drawTriangle(signed int x0, signed int y0, signed int x1, signed int y1, signed int x2, signed int y2, unsigned int color);
-void RA8875_fillTriangle(signed int x0, signed int y0, signed int x1, signed int y1, signed int x2, signed int y2, unsigned int color);
-void RA8875_drawEllipse(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned int color);
-void RA8875_fillEllipse(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned int color);
-void RA8875_drawCurve(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned char curvePart, unsigned int color);
-void RA8875_fillCurve(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned char curvePart, unsigned int color);
+void RA8875_fillScreen(uint16_t color);
+void RA8875_drawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
+void RA8875_drawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+void RA8875_HWfillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+void RA8875_drawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
+void RA8875_fillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
+void RA8875_drawTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
+void RA8875_fillTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
+void RA8875_drawEllipse(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, uint16_t color);
+void RA8875_fillEllipse(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, uint16_t color);
+void RA8875_drawCurve(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, unsigned char curvePart, uint16_t color);
+void RA8875_fillCurve(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, unsigned char curvePart, uint16_t color);
 
 /* Backlight */
 void RA8875_SetGPIOX(unsigned char on);
@@ -107,22 +107,22 @@ unsigned char RA8875_readData(void);
 void RA8875_writeCommand(unsigned char d);
 unsigned char RA8875_readStatus(void);
 unsigned char RA8875_waitPoll(unsigned char r, unsigned char f);
-unsigned int RA8875_width(void);
-unsigned int RA8875_height(void);
+uint16_t RA8875_width(void);
+uint16_t RA8875_height(void);
 
 void RA8875_PLLinit(void);
 void RA8875_initialize(void);
 
 /* GFX Helper Functions */
-void RA8875_circleHelper(signed int x0, signed int y0, signed int r, unsigned int color, unsigned char filled);
-void RA8875_rectHelper(signed int x, signed int y, signed int w, signed int h, unsigned int color, unsigned char filled);
-void RA8875_triangleHelper(signed int x0, signed int y0, signed int x1, signed int y1, signed int x2, signed int y2, unsigned int color, unsigned char filled);
-void RA8875_ellipseHelper(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned int color, unsigned char filled);
-void RA8875_curveHelper(signed int xCenter, signed int yCenter, signed int longAxis, signed int shortAxis, unsigned char curvePart, unsigned int color, unsigned char filled);
+void RA8875_circleHelper(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color, unsigned char filled);
+void RA8875_rectHelper(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color, unsigned char filled);
+void RA8875_triangleHelper(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color, unsigned char filled);
+void RA8875_ellipseHelper(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, uint16_t color, unsigned char filled);
+void RA8875_curveHelper(uint16_t xCenter, uint16_t yCenter, uint16_t longAxis, uint16_t shortAxis, unsigned char curvePart, uint16_t color, unsigned char filled);
 
 unsigned char _cs;
 unsigned char _rst;
-unsigned int _width, _height;
+uint16_t _width, _height;
 unsigned char _textScale;
 enum RA8875sizes _size;
 unsigned char textLine=0;

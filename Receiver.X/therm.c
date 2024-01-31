@@ -9,7 +9,7 @@ unsigned char thermInit(void){
 }
 
 unsigned char formatTemperatureToChar(unsigned int rawReading){
-    float exactResult = ((float)rawReading * 0.1125) + 32;
+    float exactResult = ((float)rawReading * 0.1125f) + 32;
     unsigned char result;
     if(exactResult >= 255.0){
         result = 255;

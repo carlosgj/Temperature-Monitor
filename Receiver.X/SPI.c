@@ -1,6 +1,6 @@
 #include "SPI.h"
 
-void SPIInit(){
+void SPIInit(void){
     SCK1_TRIS = OUTPUT;
     MISO1_TRIS = INPUT;
     MOSI1_TRIS = OUTPUT;

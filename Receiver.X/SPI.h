@@ -4,7 +4,7 @@
 #include "common.h"
 #include "pindef.h"
 
-void SPIInit(); 
+void SPIInit(void); 
 unsigned char SPI1Transfer(unsigned char data);
 unsigned char SPI2Transfer(unsigned char data);
 void setSSP2CKE(unsigned char newVal);
