@@ -147,7 +147,7 @@ unsigned char init(void) {
         printf("SD driver initialized.\n");
     }
     
-    serialInit();   
+    //serialInit();   
     
     safeMode = TRUE;
 
