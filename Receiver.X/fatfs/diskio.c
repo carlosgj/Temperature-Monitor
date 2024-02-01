@@ -100,6 +100,12 @@ DRESULT disk_read (
         case DRVA :
             if(SD_SPI_SectorRead(sector, buff, count) == true)
             {
+                printf("Read:");
+                uint16_t i;
+                for(i=0; i<(count * 512); i++){
+                    printf(" %X", buff[i]);
+                }
+                printf("\n");
                 res = RES_OK;
             }
             else

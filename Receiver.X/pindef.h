@@ -14,14 +14,16 @@
 #define DISP_RST_TRIS       TRISDbits.TRISD6
 #define DISP_RST_LAT        LATDbits.LATD6
 
-#define I2C_SCK_TRIS        TRISBbits.TRISB5
-#define I2C_SDA_TRIS        TRISBbits.TRISB4
-#define RTC_RST_TRIS        TRISEbits.TRISE0
-#define RTC_RST_LAT         LATEbits.LATE0
+//#define I2C_SCK_TRIS        TRISBbits.TRISB5
+//#define I2C_SDA_TRIS        TRISBbits.TRISB4
+//#define RTC_RST_TRIS        TRISEbits.TRISE0
+//#define RTC_RST_LAT         LATEbits.LATE0
 
 #define SCK2_TRIS           TRISDbits.TRISD1
 #define MOSI2_TRIS          TRISDbits.TRISD3
 #define MISO2_TRIS          TRISDbits.TRISD2
+#define SD_CS_TRIS          TRISDbits.TRISD4
+#define SD_CS_LAT           LATDbits.LATD4
 
 #define BUTTON1_TRIS        TRISAbits.TRISA0
 #define BUTTON2_TRIS        TRISAbits.TRISA1

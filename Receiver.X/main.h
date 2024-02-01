@@ -14,6 +14,7 @@
 #include "I2C.h"
 #include "UI.h"
 #include "sd_spi/sd_spi.h"
+#include "fatfs/fatfs_demo.h"
 
 #define FAST_TASKS_RATE 100
 #define SLOW_TASKS_RATE 10000

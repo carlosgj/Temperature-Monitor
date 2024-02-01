@@ -263,8 +263,7 @@ static uint8_t SD_SPI_AsyncReadTasks(struct SD_ASYNC_IO* info);
 /******************************************************************************
  * Public Functions
  *****************************************************************************/
-bool SD_SPI_IsMediaPresent(void)
-{
+bool SD_SPI_IsMediaPresent(void){
     return SD_SPI_GetCardDetect() ? true: false;
 }//end MediaDetect
 
@@ -388,15 +387,14 @@ bool SD_SPI_MediaInitialize (void)
     mediaInformation.errorCode = MEDIA_NO_ERROR;
     mediaInformation.finalLBA = 0x00000000;	
     mediaInformation.gSDMode = SD_MODE_NORMAL;
+    
+    printf("SD: initializing media\n");
 
     SD_SPI_ChipDeselect();
 
     //MMC media powers up in the open-drain mode and cannot handle a clock faster
     //than 400kHz. Initialize SPI port to <= 400kHz
-//    if( SD_SPI_master_open(SDSLOW) == false )
-//    {
-//        return false;
-//    }
+    SPI2_Open_SDSlow();
 
     //Media wants the longer of: Vdd ramp time, 1 ms fixed delay, or 74+ clock pulses.
     //According to spec, CS should be high during the 74+ clock pulses.
@@ -432,8 +430,8 @@ bool SD_SPI_MediaInitialize (void)
     //In this case, the SD card may still be busy (ex: trying to respond with the 
     //read request data), and may not be ready to process CMD0.  In this case,
     //we can try to recover by issuing CMD12 (STOP_TRANSMISSION).
-    if(timeout == 0)
-    {
+    if(timeout == 0){
+        printf("SD: Initialize failed.\n");
         SD_SPI_ChipDeselect();
         (void)SD_SPI_exchangeByte(0xFF);        //Send some "extraneous" clock pulses.  If a previous
                                                 //command was terminated before it completed normally,
@@ -457,16 +455,20 @@ bool SD_SPI_MediaInitialize (void)
             mediaInformation.errorCode = MEDIA_CANNOT_INITIALIZE;
             
             SD_SPI_ChipDeselect();
-            //SD_SPI_close();
+            SPI2_Close();
             return false;
         }            
-        else
-        {
+        else{
             //Card successfully processed CMD0 and is now in the idle state.
+#ifdef DEBUG_SD_SPI
+            printf("SD: SPI mode success\n");
+#endif
         }    
     }//if(timeout == 0) [for the CMD0 transmit loop]
-    else
-    {
+    else{
+#ifdef DEBUG_SD_SPI
+        printf("SD: SPI mode success\n");
+#endif
     }       
     
 
@@ -478,6 +480,9 @@ bool SD_SPI_MediaInitialize (void)
     //Additionally, if the SD card is MMC or SD card v1.x spec device, then it may respond with
     //invalid command.  If it is a v2.0 spec SD card, then it is mandatory that the card respond
     //to CMD8.
+#ifdef DEBUG_SD_SPI
+    printf("Checking card interface condition\n");
+#endif
     response = SD_SendCmd(SD_SEND_IF_COND, 0x1AA);   //Note: If changing "0x1AA", CRC value in table must also change.
     if(((response.r7.bytewise.argument._returnVal & 0xFFF) == 0x1AA) && (!response.r7.bitwise.bits.ILLEGAL_CMD))
     {
@@ -1133,6 +1138,10 @@ static SD_RESPONSE SD_SendCmd (uint8_t cmd, uint32_t address)
     uint16_t timeout;
     uint32_t longTimeout;
     uint8_t address_bytes[4];
+
+#ifdef DEBUG_SD_SPI
+    printf("Sending %#X to addr %#lX\n", cmd, address);
+#endif
     
     SD_SPI_ChipSelect();
     
@@ -1164,6 +1173,10 @@ static SD_RESPONSE SD_SendCmd (uint8_t cmd, uint32_t address)
         response.r1._byte = SD_SPI_exchangeByte(0xFF);
         timeout--;
     }while((response.r1._byte == SD_TOKEN_FLOATING_BUS) && (timeout != 0));
+    
+    if(timeout == 0){
+        printf("SD: NCR timeout\n");
+    }
     
     //Check if we should read more bytes, depending upon the response type expected.  
     if(sdmmc_cmdtable[cmd].responsetype == SD_RESPONSE_R2)
@@ -1212,7 +1225,16 @@ static SD_RESPONSE SD_SendCmd (uint8_t cmd, uint32_t address)
     {
         SD_SPI_ChipDeselect();
     }
-
+    
+#ifdef DEBUG_SD_SPI
+    printf("Got:");
+    uint8_t i;
+    for (i=0; i<5; i++){
+        printf(" %X", ((uint8_t *)(&response))[i]);
+    }
+    printf("\n");
+#endif
+    
     return(response);
 }
 

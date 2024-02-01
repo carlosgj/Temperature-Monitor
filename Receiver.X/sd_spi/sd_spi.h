@@ -22,10 +22,15 @@ please contact mla_licensing@microchip.com
 #ifndef SDMMC_H
 #define SDMMC_H
 
+#include "../common.h"
+#include "../SPI.h"
 #include <stdint.h>
 #include <stdbool.h>
 
 #include <string.h>
+
+#define DEBUG_SD_SPI
+
 
 /******************************************************************************/
 /* SD Configuration                                                           */
@@ -35,14 +40,14 @@ please contact mla_licensing@microchip.com
 #define SD_SPI_COMMAND_WAIT_MS 1u
 #define SD_NCR_TIMEOUT     (uint16_t)20          //byte times before command response is expected (must be at least 8)
 #define SD_NAC_TIMEOUT     (uint32_t)0x40000     //SPI byte times we should wait when performing read operations (should be at least 100ms for SD cards)
-#define SD_WRITE_TIMEOUT   (uint32_t)0xA0000     //SPI byte times to wait before timing out when the media is performing a write operation (should be at least 250ms for SD cards).
+#define SD_WRITE_TIMEOUT   (uint32_t)0x0A000     //SPI byte times to wait before timing out when the media is performing a write operation (should be at least 250ms for SD cards).
 
 //TODO
-#define SD_SPI_ChipSelect()                 asm("NOP")
-#define SD_SPI_ChipDeselect()               asm("NOP") 
-#define SD_SPI_exchangeByte(data)           0
-#define SD_SPI_exchangeBlock(data, length)  0
-#define SD_SPI_GetCardDetect()              0
+#define SD_SPI_ChipSelect()                 SD_CS_LAT = FALSE
+#define SD_SPI_ChipDeselect()               SD_CS_LAT = TRUE
+#define SD_SPI_exchangeByte(data)           SD_ExchangeByte(data)
+#define SD_SPI_exchangeBlock(data, length)  SD_ExchangeBlock(data, length)
+#define SD_SPI_GetCardDetect()              1
 #define SD_SPI_GetWriteProtect()            0
 
 

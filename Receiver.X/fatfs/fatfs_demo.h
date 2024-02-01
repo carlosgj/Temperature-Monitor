@@ -22,6 +22,10 @@
 #ifndef FATFS_DEMO_H
 #define FATFS_DEMO_H
 
+#include "../common.h"
+#include "ff.h"
+#include "../sd_spi/sd_spi.h"
+
 void FatFsDemo_Tasks(void);
 
 #endif

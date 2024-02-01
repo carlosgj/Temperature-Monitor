@@ -3216,7 +3216,10 @@ static FRESULT find_volume (	/* FR_OK(0): successful, !=0: an error occurred */
 	/* Get logical drive number */
 	*rfs = 0;
 	vol = get_ldnumber(path);
-	if (vol < 0) return FR_INVALID_DRIVE;
+	if (vol < 0){
+        printf("FAT: Invalid drive (get_ldnumber failed)\n");
+        return FR_INVALID_DRIVE;
+    }
 
 	/* Check if the filesystem object is valid or not */
 	fs = FatFs[vol];					/* Get pointer to the filesystem object */
@@ -3481,7 +3484,11 @@ FRESULT f_mount (
 
 	/* Get logical drive number */
 	vol = get_ldnumber(&rp);
-	if (vol < 0) return FR_INVALID_DRIVE;
+    printf("FAT: Mounting volume %d\n", vol);
+	if (vol < 0){
+        printf("FAT: Invalid drive.\n");
+        return FR_INVALID_DRIVE;
+    }
 	cfs = FatFs[vol];					/* Pointer to fs object */
 
 	if (cfs) {
@@ -3502,10 +3509,12 @@ FRESULT f_mount (
 	}
 	FatFs[vol] = fs;					/* Register new fs object */
 
-	if (opt == 0) return FR_OK;			/* Do not mount now, it will be mounted later */
+	if (opt == 0){ 
+        return FR_OK;			/* Do not mount now, it will be mounted later */
+    }
 
 	res = find_volume(&path, &fs, 0);	/* Force mounted the volume */
-	LEAVE_FF(fs, res);
+	LEAVE_FF(fs, res); //return res
 }
 
 

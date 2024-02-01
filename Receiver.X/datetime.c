@@ -29,7 +29,11 @@ uint8_t is_leap(uint16_t year){
 uint32_t days_before_year(uint16_t year){
     //year -> number of days before January 1st of year.
     uint16_t y = year - 1;
-    return (y * 365) + (y/4) - (y/100) + (y/400);
+    uint32_t result = (uint32_t)y * 365L;
+    result += y/4;
+    result -= y/100;
+    result += y/400;
+    return result;
 }
 
 uint8_t days_in_month(uint16_t year, uint8_t month){
@@ -69,6 +73,7 @@ uint32_t ymd2ord(struct date_t *ymd){
 }
 
 void datetime_tests(void){
+    printf("Running datetime routine tests...\n");
     uint32_t DI400Y_c = days_before_year(401);    // number of days in 400 years
     uint32_t DI100Y_c = days_before_year(101);    //    "    "   "   " 100   "
     uint32_t DI4Y_c   = days_before_year(5);      //    "    "   "   "   4   "
@@ -77,23 +82,33 @@ void datetime_tests(void){
     // together 4 single years.
     //uint16_t DI4Y_sb = 4 * 365 + 1;
     if(DI4Y_c != DI4Y){
-        printf("Test failed; days in 4 years calc'd as %lu; should be %lu\n", DI4Y_c, DI4Y);
+        printf("\tTest failed; days in 4 years calc'd as %lu; should be %lu\n", DI4Y_c, DI4Y);
+    }
+    else{
+        printf("\tDI4Y test passed.\n");
     }
 
     // Similarly, a 400-year cycle has an extra leap day over what we'd get from
     // pasting together 4 100-year cycles.
     //assert DI400Y == 4 * DI100Y + 1
     if(DI400Y_c != DI400Y){
-        printf("Test failed; days in 400 years calc'd as %lu; should be %lu\n", DI400Y_c, DI400Y);
+        printf("\tTest failed; days in 400 years calc'd as %lu; should be %lu\n", DI400Y_c, DI400Y);
+    }
+    else{
+        printf("\tDI400Y test passed.\n");
     }
 
     // OTOH, a 100-year cycle has one fewer leap day than we'd get from
     // pasting together 25 4-year cycles.
     //assert _DI100Y == 25 * _DI4Y - 1
     if(DI100Y_c != DI100Y){
-        printf("Test failed; days in 100 years calc'd as %lu; should be %lu\n", DI100Y_c, DI100Y);
+        printf("\tTest failed; days in 100 years calc'd as %lu; should be %lu\n", DI100Y_c, DI100Y);
     }
-    printf("Datetime tests done.\n");
+    else{
+        printf("\tDI100Y test passed.\n");
+    }
+    
+    printf("Datetime tests done.\n\n");
 }
 
 void ord2ymd(uint32_t n, struct date_t *ymd){

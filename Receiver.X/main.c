@@ -49,14 +49,15 @@ unsigned char init(void) {
     printf("\n--------------------------\n");
     printf("Serial initialized.\n");
     printf("Last reset: %d\n", resetCause);
-    printf("Temperature Monitor\n");
+    printf("MG Temperature Monitor\n");
     printf("SW ver: %s\n", SW_VER_STR);
     printf("Compiled: %s %s\n", __DATE__, __TIME__);
     printf("Git ver: %s\n", GIT_VERSION);
+    printf("\n");
 
     printf("Initializing SPI...\n");
     SPIInit();
-    printf("SPI initialized.\n");
+    printf("SPI initialized.\n\n");
 
     printf("Initializing display...\n");
     initErrorCode = displayInit();
@@ -67,6 +68,7 @@ unsigned char init(void) {
     else{
         printf("Display initialized.\n");
     }
+    printf("\n");
 
     //Initialize ADC
     printf("Initializing ADC...\n");
@@ -78,6 +80,7 @@ unsigned char init(void) {
     else{
         printf("ADC initialized.\n");
     }
+    printf("\n");
     
     //Initialize I2C
     printf("Initializing I2C...\n");
@@ -89,6 +92,9 @@ unsigned char init(void) {
     else{
         printf("I2C initialized.\n");
     }
+    printf("\n");
+    
+    datetime_tests();
     
     //Initialize RTC & get current timestamp
     //DEBUG CODE!
@@ -146,10 +152,21 @@ unsigned char init(void) {
     else{
         printf("SD driver initialized.\n");
     }
+    printf("\n");
     
-    //serialInit();   
     
-    safeMode = TRUE;
+    printf("Running FAT demo\n");
+    uint8_t foo[] = {1, 2, 3};
+    //SD_Exchange(foo, 3);
+    FatFsDemo_Tasks();
+    printf("FAT demo done.\n");
+    
+    //serialInit();
+    
+    if(initError){
+        printf("Setting safe mode!\n");
+        safeMode = TRUE;
+    }
 
     return initError;
 }

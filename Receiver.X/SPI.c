@@ -1,19 +1,20 @@
 #include "SPI.h"
 
 void SPIInit(void){
-    SCK1_TRIS = OUTPUT;
-    MISO1_TRIS = INPUT;
-    MOSI1_TRIS = OUTPUT;
-    DISP_CS_TRIS = OUTPUT;
-    DISP_CS_LAT = TRUE;
+    //MSSP1 setup
+    //SCK1_TRIS = OUTPUT;
+    //MISO1_TRIS = INPUT;
+    //MOSI1_TRIS = OUTPUT;
+    //DISP_CS_TRIS = OUTPUT;
+    //DISP_CS_LAT = TRUE;
     
     //Set up inputs
     //SSP1CLKPPS = 0b10011; //SSP1 clk in on C3
     //SSP1DATPPS = 0b10100; //SSP1 MISO on C4 
     
     //Set up outputs
-    RC3PPS = 0x0F; //MSSP1 SCK on C3
-    RB3PPS = 0x10; //MSSP1 SDO on B3
+    //RC3PPS = 0x0F; //MSSP1 SCK on C3
+    //RB3PPS = 0x10; //MSSP1 SDO on B3
     
     //SSP1STATbits.SMP = 0;
     //SSP1STATbits.CKE = 1;
@@ -27,34 +28,69 @@ void SPIInit(void){
     MOSI2_TRIS = OUTPUT;
     MISO2_TRIS = INPUT;
     
+    SD_CS_LAT = TRUE;
+    SD_CS_TRIS = OUTPUT;
+    
     //Set up inputs
-    //SSP2CLKPPS = 0b00001001; //SSP2 clk in on B1
-    //SSP2DATPPS = 0b00001010; //SSP2 MISO on B2 
+    //SPI2SCKPPS = 0b011001; //SPI2 clk on D1
+    SPI2SDIPPS = 0b011010; //SSP2 MISO on D2 
     
     //Set up outputs
-    //RB1PPS = 0x11; //MSSP2 clk out on RB1;
-    //RD4PPS = 0x12; //MSSP2 MOSI on D4
-    
-    //SSP2STATbits.SMP = 0;
-    //SSP2STATbits.CKE = 0;
-    //SSP2CON1bits.CKP = 0;
-    //SSP2CON1bits.SSPM = 0b0010; //Fosc/64
-    //SSP2CON3bits.BOEN = TRUE;
-    //SSP2CON1bits.SSPEN = TRUE; //Enable
+    RD1PPS = 0x34; //SPI2 clk out on D1
+    RD3PPS = 0x35; //SPI22 MOSI on D3
 }
 
-unsigned char SPI2Transfer(unsigned char data){
-    unsigned char timeout = 100;
+void SPI2_Open_SDSlow(void){
+    SPI2CON0bits.MST = TRUE; //Master
+    SPI2CON0bits.BMODE = TRUE;
+    SPI2CON0bits.LSBF = FALSE;
+    SPI2CON1bits.SMP = 0;
+    SPI2CON1bits.CKE = 1;
+    SPI2CON1bits.CKP = 0;
+    SPI2CON2bits.RXR = TRUE;
+    SPI2CON2bits.TXR = TRUE;
+    //SSP2CON1bits.SSPM = 0b0010; //Fosc/64
+    //SSP2CON3bits.BOEN = TRUE;
+    SPI2CLK = 0; //Fosc
+    SPI2BAUD = 255;
+    SPI2CON0bits.EN = TRUE; //Enable
+}
+
+void SPI2_Close(void){
+    SPI2CON0bits.EN = FALSE; //Disable
+}
+
+uint8_t SPI2Transfer(uint8_t data){
+    uint8_t timeout = 100;
     uint8_t result = 0;
-    //SSP2BUF = data;
-    //while(!SSP2STATbits.BF && timeout > 0){
-    //    timeout--;
-    //}
-    //unsigned char result = SSP2BUF;
+    SPI2TXB = data;
+    asm("NOP");
+    asm("NOP");
+    while(SPI2CON2bits.BUSY && timeout > 0){
+        timeout--;
+    }
+    result = SPI2RXB;
     if(timeout == 0){
+        printf("SPI timeout!\n");
         return 0xff;
     }
     return result;
+}
+
+uint8_t SD_ExchangeByte(uint8_t data){
+    uint8_t temp_result;
+    temp_result = SPI2Transfer(data);
+    //printf("SD: < %X\n", temp_result);
+    return temp_result;
+}
+
+void SD_ExchangeBlock(uint8_t *data, uint8_t len){
+    uint8_t temp_result;
+    uint8_t i;
+    for(i=0; i<len; i++){
+        temp_result = SPI2Transfer(data[i]);
+        data[i] = temp_result;
+    }
 }
 
 unsigned char SPI1Transfer(unsigned char data){
