@@ -156,9 +156,28 @@ unsigned char init(void) {
     
     
     printf("Running FAT demo\n");
-    uint8_t foo[] = {1, 2, 3};
-    //SD_Exchange(foo, 3);
-    FatFsDemo_Tasks();
+    //FatFsDemo_Tasks();
+    initErrorCode = FSInit();
+    if(initErrorCode){
+        printf("FS init success\n");
+    }
+    else{
+        printf("FS init fail\n");
+    }
+    uint16_t foo = MDD_SDSPI_ReadSectorSize();
+    printf("Sector size: %d\n", foo);
+    
+    printf("Opening file...\n");
+    FSFILE *fob = FSfopen("test", "w+");
+    printf("File opened; pointer=%u.\n", (uint16_t)fob);
+    printf("Error: %d\n", FSerror());
+    printf("Writing to file...\n");
+    initErrorCode = FSfwrite("Hello!", 1, 6, fob);
+    printf("Write result: %d\n", initErrorCode);
+    
+    initErrorCode = FSfclose(fob);
+    printf("Close result: %d\n", initErrorCode);
+    
     printf("FAT demo done.\n");
     
     //serialInit();

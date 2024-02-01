@@ -84,9 +84,9 @@ uint8_t SD_ExchangeByte(uint8_t data){
     return temp_result;
 }
 
-void SD_ExchangeBlock(uint8_t *data, uint8_t len){
+void SD_ExchangeBlock(uint8_t *data, uint16_t len){
     uint8_t temp_result;
-    uint8_t i;
+    uint16_t i;
     for(i=0; i<len; i++){
         temp_result = SPI2Transfer(data[i]);
         data[i] = temp_result;

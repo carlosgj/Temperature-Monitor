@@ -7,7 +7,7 @@
 #include "FIFO.h"
 #include "gitVersion.h"
 #include "pindef.h"
-#include "fatfs/ff.h"
+//#include "fatfs/ff.h"
 
 #pragma warning disable 520
 
@@ -72,8 +72,8 @@ const unsigned char daysPerMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30
 
 FIFO DbgUARTRxBuf;
 
-FATFS drive;
-FIL file;
+//FATFS drive;
+//FIL file;
 
 #endif	/* XC_HEADER_TEMPLATE_H */
 

@@ -10,7 +10,7 @@ void SPI2_Close(void);
 unsigned char SPI1Transfer(unsigned char data);
 uint8_t SPI2Transfer(uint8_t data);
 uint8_t SD_ExchangeByte(uint8_t data);
-void SD_ExchangeBlock(uint8_t *data, uint8_t len);
+void SD_ExchangeBlock(uint8_t *data, uint16_t len);
 void setSSP2CKE(unsigned char newVal);
 #endif	/* XC_HEADER_TEMPLATE_H */
 
