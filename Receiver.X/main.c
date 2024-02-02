@@ -159,47 +159,49 @@ uint8_t init(void) {
     }
     printf("\n");
 
-    //    printf("Running FAT demo\n");
-    //    uint16_t foo = MDD_SDSPI_ReadSectorSize();
-    //    printf("Sector size: %d\n", foo);
-    //    
-    //    TRISCbits.TRISC7 = OUTPUT;
-    //    
-    //    uint8_t i;
-    //    uint16_t startTime, oldTime, newTime, endTime;
-    //    int16_t closeResult;
-    //    uint8_t dataToWrite[12];
-    //    uint8_t len;
-    //    FSFILE *fob;
-    //    for(i=0; i<2; i++){
-    //        getMillis(&startTime);
-    //        LATCbits.LATC7 = !LATCbits.LATC7;
-    //        printf("Opening file...\n");
-    //        getMillis(&oldTime);
-    //        fob = FSfopen("test", "a+");
-    //        getMillis(&newTime);
-    //        printf("File opened; pointer=%p.\n", fob);
-    //        printf("Error: %d\n", FSerror());
-    //        printf("Open time: %d ms\n", newTime - oldTime);
-    //        
-    //        printf("Writing to file...\n");
-    //        getMillis(&oldTime);
-    //        len = sprintf(dataToWrite, "Line %d\n", i);
-    //        initErrorCode = (uint8_t)FSfwrite(dataToWrite, (size_t)1, (size_t)len, fob);
-    //        getMillis(&newTime);
-    //        printf("Write result: %d\n", initErrorCode);
-    //        printf("Write time: %d ms\n", newTime - oldTime);
-    //        
-    //        getMillis(&oldTime);
-    //        closeResult = FSfclose(fob);
-    //        getMillis(&newTime);
-    //        printf("Close result: %d\n", closeResult);
-    //        printf("Close time: %d ms\n", newTime - oldTime);
-    //        getMillis(&endTime);
-    //        printf("Total Time: %d\n", endTime - startTime);
-    //    }
-    //    
-    //    printf("FAT demo done.\n\n");
+    printf("Running FAT demo\n");
+    uint16_t foo = MDD_SDSPI_ReadSectorSize();
+    printf("Sector size: %d\n", foo);
+
+    TRISCbits.TRISC7 = OUTPUT;
+
+    uint8_t i;
+    uint16_t startTime, oldTime, newTime, endTime;
+    int16_t closeResult;
+    uint8_t dataToWrite[12];
+    uint8_t len;
+    FSFILE *fob;
+    SPI2_Open_SDFast();
+    for(i=0; i<2; i++){
+        getMillis(&startTime);
+        LATCbits.LATC7 = !LATCbits.LATC7;
+        printf("Opening file...\n");
+        getMillis(&oldTime);
+        fob = FSfopen("test", "a+");
+        getMillis(&newTime);
+        printf("File opened; pointer=%p.\n", fob);
+        printf("Error: %d\n", FSerror());
+        printf("Open time: %d ms\n", newTime - oldTime);
+
+        printf("Writing to file...\n");
+        getMillis(&oldTime);
+        len = sprintf(dataToWrite, "Line %d\n", i);
+        initErrorCode = (uint8_t)FSfwrite(dataToWrite, (size_t)1, (size_t)len, fob);
+        getMillis(&newTime);
+        printf("Write result: %d\n", initErrorCode);
+        printf("Write time: %d ms\n", newTime - oldTime);
+
+        getMillis(&oldTime);
+        closeResult = FSfclose(fob);
+        getMillis(&newTime);
+        printf("Close result: %d\n", closeResult);
+        printf("Close time: %d ms\n", newTime - oldTime);
+        getMillis(&endTime);
+        printf("Total Time: %d\n", endTime - startTime);
+    }
+    SPI2_Close();
+
+    printf("FAT demo done.\n\n");
 
     printf("Initializing RFM69...\n");
     initErrorCode = RFM69_initialize(0);

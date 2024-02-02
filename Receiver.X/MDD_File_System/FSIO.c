@@ -411,8 +411,7 @@ uint32_t GetFullClusterNumber(DIRENTRY entry);
     None
   *************************************************************************/
 
-uint8_t FSInit(void)
-{
+uint8_t FSInit(void){
     int fIndex;
 #ifndef FS_DYNAMIC_MEM
     for( fIndex = 0; fIndex < FS_MAX_FILES_OPEN; fIndex++ )
@@ -457,12 +456,11 @@ uint8_t FSInit(void)
 #endif
 
         FSerrno = 0;
-        return error;
     }
     else{
         printf("FAT: Mount error: %d\n", error);
     }
-
+    SPI2_Close();
     return error;
 }
 

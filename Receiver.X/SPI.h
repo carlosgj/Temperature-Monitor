@@ -6,6 +6,7 @@
 
 void SPIInit(void); 
 void SPI2_Open_SDSlow(void);
+void SPI2_Open_SDFast(void);
 void SPI2_Open_RFM69(void);
 void SPI2_Close(void);
 unsigned char SPI1Transfer(unsigned char data);

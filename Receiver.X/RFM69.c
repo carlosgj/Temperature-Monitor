@@ -139,6 +139,7 @@ uint8_t RFM69_initialize(uint8_t nodeID) {
     //attachInterrupt(_interruptNum, RFM69_isr0, RISING);
 
     _address = nodeID;
+    SPI2_Close();
     return 0;
 }
 

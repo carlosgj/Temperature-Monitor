@@ -41,6 +41,10 @@ void SPIInit(void){
 }
 
 void SPI2_Open_SDSlow(void){
+    if(SPI2CON0bits.EN){
+        printf("Warning! SPI2 was already open when Open_SDSlow was called.\n");
+        SPI2CON0bits.EN = FALSE;
+    }
     SPI2CON0bits.MST = TRUE; //Master
     SPI2CON0bits.BMODE = TRUE;
     SPI2CON0bits.LSBF = FALSE;
@@ -56,7 +60,31 @@ void SPI2_Open_SDSlow(void){
     SPI2CON0bits.EN = TRUE; //Enable
 }
 
+void SPI2_Open_SDFast(void){
+    if(SPI2CON0bits.EN){
+        printf("Warning! SPI2 was already open when Open_SDFast was called.\n");
+        SPI2CON0bits.EN = FALSE;
+    }
+    SPI2CON0bits.MST = TRUE; //Master
+    SPI2CON0bits.BMODE = TRUE;
+    SPI2CON0bits.LSBF = FALSE;
+    SPI2CON1bits.SMP = 0;
+    SPI2CON1bits.CKE = 1;
+    SPI2CON1bits.CKP = 0;
+    SPI2CON2bits.RXR = TRUE;
+    SPI2CON2bits.TXR = TRUE;
+    //SSP2CON1bits.SSPM = 0b0010; //Fosc/64
+    //SSP2CON3bits.BOEN = TRUE;
+    SPI2CLK = 0; //Fosc
+    SPI2BAUD = 10;
+    SPI2CON0bits.EN = TRUE; //Enable
+}
+
 void SPI2_Open_RFM69(void){
+    if(SPI2CON0bits.EN){
+        printf("Warning! SPI2 was already open when Open_RFM69 was called.\n");
+        SPI2CON0bits.EN = FALSE;
+    }
     SPI2CON0bits.MST = TRUE; //Master
     SPI2CON0bits.BMODE = TRUE;
     SPI2CON0bits.LSBF = FALSE;

@@ -453,28 +453,10 @@ MMC_RESPONSE SendMMCCmd(uint8_t cmd, uint32_t address)
     CMD_PACKET  CmdPacket;
     uint16_t timeout;
     uint32_t longTimeout;
+
+    SD_CS = 0;                           //Select card   
     
-#if defined(__STM32F10X__)
-	SD_CS_LOW();
-#else
-    SD_CS = 0;                           //Select card
-#endif    
     // Copy over data
-#if defined(__STM32F10X__)
-    CmdPacket.cmds.cmd		= sdmmc_cmdtable[cmd].CmdCode;
-	CmdPacket.bits.address	= address;
-    CmdPacket.cmds.crc		= sdmmc_cmdtable[cmd].CRC;	// Calc CRC here
-
-    CmdPacket.bits.TRANSMIT_BIT = 1;					//Set Tranmission bit
-
-    WriteSPIM(CmdPacket.cmds.cmd);		//Send Command
-    WriteSPIM(CmdPacket.cmds.addr3);	//Most Significant Byte
-    WriteSPIM(CmdPacket.cmds.addr2);
-    WriteSPIM(CmdPacket.cmds.addr1);
-    WriteSPIM(CmdPacket.cmds.addr0);	//Least Significant Byte
-    WriteSPIM(CmdPacket.cmds.crc);		//Send CRC
-
-#else
     CmdPacket.cmd        = sdmmc_cmdtable[cmd].CmdCode;
     CmdPacket.address    = address;
     CmdPacket.crc        = sdmmc_cmdtable[cmd].CRC;		// Calc CRC here
@@ -487,14 +469,11 @@ MMC_RESPONSE SendMMCCmd(uint8_t cmd, uint32_t address)
     WriteSPIM(CmdPacket.addr1);
     WriteSPIM(CmdPacket.addr0);		//Least Significant Byte
     WriteSPIM(CmdPacket.crc);		//Send CRC
-
-#endif
     
     //Special handling for CMD12 (STOP_TRANSMISSION).  The very first byte after
     //sending the command packet may contain bogus non-0xFF data.  This 
     //"residual data" byte should not be interpreted as the R1 response byte.
-    if (cmd == STOP_TRANSMISSION)
-    {
+    if (cmd == STOP_TRANSMISSION){
         MDD_SDSPI_ReadMedia(); //Perform dummy read to fetch the residual non R1 byte
     } 
 
@@ -509,15 +488,9 @@ MMC_RESPONSE SendMMCCmd(uint8_t cmd, uint32_t address)
     } while((response.r1._byte == MMC_FLOATING_BUS) && (timeout != 0));
     
     //Check if we should read more bytes, depending upon the response type expected.  
-    if (sdmmc_cmdtable[cmd].responsetype == R2)
-    {
-	#if defined(__STM32F10X__)
-        response.r2.bytes._byte1 = response.r1._byte; //We already received the first byte, just make sure it is in the correct location in the struct.
-        response.r2.bytes._byte0 = MDD_SDSPI_ReadMedia(); //Fetch the second byte of the response.
-	#else
+    if (sdmmc_cmdtable[cmd].responsetype == R2){
         response.r2._byte1 = response.r1._byte; //We already received the first byte, just make sure it is in the correct location in the struct.
         response.r2._byte0 = MDD_SDSPI_ReadMedia(); //Fetch the second byte of the response.
-	#endif
     }
     else if (sdmmc_cmdtable[cmd].responsetype == R1b)
     {
@@ -544,17 +517,10 @@ MMC_RESPONSE SendMMCCmd(uint8_t cmd, uint32_t address)
         //However, the C compiler stores 32-bit values in little endian in RAM.
         //When writing to the _returnVal/argument bytes, make sure the order it 
         //gets stored in is correct.      
-	#if defined(__STM32F10X__)
-        response.r7.bytewise.argument.bytes._byte3 = MDD_SDSPI_ReadMedia();
-        response.r7.bytewise.argument.bytes._byte2 = MDD_SDSPI_ReadMedia();
-        response.r7.bytewise.argument.bytes._byte1 = MDD_SDSPI_ReadMedia();
-        response.r7.bytewise.argument.bytes._byte0 = MDD_SDSPI_ReadMedia();
-	#else
         response.r7.bytewise.argument._byte3 = MDD_SDSPI_ReadMedia();
         response.r7.bytewise.argument._byte2 = MDD_SDSPI_ReadMedia();
         response.r7.bytewise.argument._byte1 = MDD_SDSPI_ReadMedia();
         response.r7.bytewise.argument._byte0 = MDD_SDSPI_ReadMedia();
-	#endif
     }
 
     WriteSPIM(0xFF);    //Device requires at least 8 clock pulses after 
@@ -562,12 +528,9 @@ MMC_RESPONSE SendMMCCmd(uint8_t cmd, uint32_t address)
                              //the next command.  CS may be high or low.
 
     // see if we are expecting more data or not
-    if (!(sdmmc_cmdtable[cmd].moredataexpected))
-#if defined(__STM32F10X__)
-        SD_CS_HIGH();
-#else
+    if (!(sdmmc_cmdtable[cmd].moredataexpected)){
         SD_CS = 1;
-#endif
+    }
 
     return(response);
 }
@@ -1805,7 +1768,8 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
     //either the maximum of the microcontroller or maximum of media, whichever 
     //is slower.  MMC media is typically good for at least 20Mbps SPI speeds.  
     //SD cards would typically operate at up to 25Mbps or higher SPI speeds.
-    SPI2_Open_SDSlow();
+    SPI2_Close();
+    SPI2_Open_SDFast();
 	SD_CS = 0;
     
 	/* Send the CMD9 to read the CSD register */
