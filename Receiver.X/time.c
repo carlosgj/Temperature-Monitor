@@ -49,3 +49,9 @@ void __interrupt(irq(TMR1), high_priority) TMR1ISR(void){
 #endif
     PIR3bits.TMR1IF = FALSE;
 }
+
+void variableDelayMs(uint16_t ms){
+    for(; ms>0; ms--){
+        __delay_ms(1);
+    }
+}

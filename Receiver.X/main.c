@@ -2,12 +2,10 @@
 
 void main(void) {
     uint8_t initStatus = init();
-    if (initStatus < 2) {
+    if (initStatus < 3) {
         //setDisplayMode(DISP_MODE_HOME);
         //setGraphMode(GRAPH_MODE_DAY);
-        while (1) {
-            //run();
-        }
+        run();
     } else {
         printf("Critical initialization error(s). System halted.");
         while (TRUE) {
@@ -57,7 +55,7 @@ uint8_t init(void) {
     initErrorCode = displayInit();
     if (initErrorCode != 0) {
         printf("Display init error %d!\n", initErrorCode);
-        if(initError == 0){
+        if (initError == 0) {
             initError = 2;
         }
     } else {
@@ -70,7 +68,7 @@ uint8_t init(void) {
     initErrorCode = thermInit();
     if (initErrorCode != 0) {
         printf("ADC init error %d!\n", initErrorCode);
-        if(initError == 0){
+        if (initError == 0) {
             initError = 1;
         }
     } else {
@@ -83,7 +81,7 @@ uint8_t init(void) {
     initErrorCode = I2C_init();
     if (initErrorCode != 0) {
         printf("I2C init error %d!\n", initErrorCode);
-        if(initError == 0){
+        if (initError == 0) {
             initError = 1;
         }
     } else {
@@ -93,7 +91,7 @@ uint8_t init(void) {
 
     if (initErrorCode == 0) {
         //Don't bother trying to init RTC if I2C failed
-        
+
         datetime_tests();
 
         //Initialize RTC & get current timestamp
@@ -151,7 +149,7 @@ uint8_t init(void) {
     initErrorCode = FSInit();
     if (initErrorCode != 0) {
         printf("SD card driver init error %d!\n", initErrorCode);
-        if(initError == 0){
+        if (initError == 0) {
             initError = 1;
         }
     } else {
@@ -159,55 +157,55 @@ uint8_t init(void) {
     }
     printf("\n");
 
-    printf("Running FAT demo\n");
-    uint16_t foo = MDD_SDSPI_ReadSectorSize();
-    printf("Sector size: %d\n", foo);
-
-    TRISCbits.TRISC7 = OUTPUT;
-
-    uint8_t i;
-    uint16_t startTime, oldTime, newTime, endTime;
-    int16_t closeResult;
-    uint8_t dataToWrite[12];
-    uint8_t len;
-    FSFILE *fob;
-    SPI2_Open_SDFast();
-    for(i=0; i<2; i++){
-        getMillis(&startTime);
-        LATCbits.LATC7 = !LATCbits.LATC7;
-        printf("Opening file...\n");
-        getMillis(&oldTime);
-        fob = FSfopen("test", "a+");
-        getMillis(&newTime);
-        printf("File opened; pointer=%p.\n", fob);
-        printf("Error: %d\n", FSerror());
-        printf("Open time: %d ms\n", newTime - oldTime);
-
-        printf("Writing to file...\n");
-        getMillis(&oldTime);
-        len = sprintf(dataToWrite, "Line %d\n", i);
-        initErrorCode = (uint8_t)FSfwrite(dataToWrite, (size_t)1, (size_t)len, fob);
-        getMillis(&newTime);
-        printf("Write result: %d\n", initErrorCode);
-        printf("Write time: %d ms\n", newTime - oldTime);
-
-        getMillis(&oldTime);
-        closeResult = FSfclose(fob);
-        getMillis(&newTime);
-        printf("Close result: %d\n", closeResult);
-        printf("Close time: %d ms\n", newTime - oldTime);
-        getMillis(&endTime);
-        printf("Total Time: %d\n", endTime - startTime);
-    }
-    SPI2_Close();
-
-    printf("FAT demo done.\n\n");
+//    printf("Running FAT demo\n");
+//    uint16_t foo = MDD_SDSPI_ReadSectorSize();
+//    printf("Sector size: %d\n", foo);
+//
+//    TRISCbits.TRISC7 = OUTPUT;
+//
+//    uint8_t i;
+//    uint16_t startTime, oldTime, newTime, endTime;
+//    int16_t closeResult;
+//    uint8_t dataToWrite[12];
+//    uint8_t len;
+//    FSFILE *fob;
+//    SPI2_Open_SDFast();
+//    for (i = 0; i < 2; i++) {
+//        getMillis(&startTime);
+//        LATCbits.LATC7 = !LATCbits.LATC7;
+//        printf("Opening file...\n");
+//        getMillis(&oldTime);
+//        fob = FSfopen("test", "a+");
+//        getMillis(&newTime);
+//        printf("File opened; pointer=%p.\n", fob);
+//        printf("Error: %d\n", FSerror());
+//        printf("Open time: %d ms\n", newTime - oldTime);
+//
+//        printf("Writing to file...\n");
+//        getMillis(&oldTime);
+//        len = sprintf(dataToWrite, "Line %d\n", i);
+//        initErrorCode = (uint8_t) FSfwrite(dataToWrite, (size_t) 1, (size_t) len, fob);
+//        getMillis(&newTime);
+//        printf("Write result: %d\n", initErrorCode);
+//        printf("Write time: %d ms\n", newTime - oldTime);
+//
+//        getMillis(&oldTime);
+//        closeResult = FSfclose(fob);
+//        getMillis(&newTime);
+//        printf("Close result: %d\n", closeResult);
+//        printf("Close time: %d ms\n", newTime - oldTime);
+//        getMillis(&endTime);
+//        printf("Total Time: %d\n", endTime - startTime);
+//    }
+//    SPI2_Close();
+//
+//    printf("FAT demo done.\n\n");
 
     printf("Initializing RFM69...\n");
     initErrorCode = RFM69_initialize(0);
     if (initErrorCode != 0) {
         printf("RFM69 init error %d!\n", initErrorCode);
-        if(initError == 0){
+        if (initError == 0) {
             initError = 1;
         }
     } else {
@@ -225,88 +223,73 @@ uint8_t init(void) {
 }
 
 void run(void) {
+    uint16_t minorCycleCounter = 0;
+    uint16_t minorCycleStartTime, minorCycleEndTime, minorCycleDuration;
     uint16_t oldMinuteOfDay = minuteOfDay;
     unsigned char oldDay = currentDay;
-    if (messageInProgressFlag) {
-        __delay_ms(20);
-        processMessage();
-        currentTemperatureByte = formatTemperatureToChar(tempReadingRaw);
-        asm("NOP");
-    }
-    if (fast_tasks_timer == 0) {
-        fast_tasks_timer = FAST_TASKS_RATE;
+
+    while (TRUE) {
+        getMillis(&minorCycleStartTime);
+
+        
+        //Do tasks
+        if (messageInProgressFlag) {
+            __delay_ms(20);
+            processMessage();
+            currentTemperatureByte = formatTemperatureToChar(tempReadingRaw);
+            asm("NOP");
+        }
         //getTime();
-        //drawTime();
         //updateButtons();
-        //handleButtonActions();
+        handleButtonActions();
         if (safeMode) {
             //drawSafeMode();
         }
+        UI_periodic(minorCycleCounter);
+
+        
+        minorCycleCounter++;
+        if (minorCycleCounter == MAJOR_CYCLE_LENGTH) {
+            minorCycleCounter = 0;
+            printf("Major cycle\n");
+        }
+        
+        getMillis(&minorCycleEndTime);
+        minorCycleDuration = minorCycleEndTime - minorCycleStartTime;
+        printf("%u\n", minorCycleDuration);
+        if (minorCycleDuration > MINOR_CYCLE_TIME_LIMIT_MS) {
+            printf("Warning: Cycle slip; minor cycle took %u ms.\n", minorCycleDuration);
+        } else {
+            variableDelayMs(MINOR_CYCLE_TIME_LIMIT_MS - minorCycleDuration);
+        }
     }
-    //    drawHomeScreen();
-    //    if(slow_tasks_timer == 0){
-    //        slow_tasks_timer = SLOW_TASKS_RATE;
-    //        //drawTemp();
-    //        if (currentDisplayMode == DISP_MODE_HOME) {
-    //            switch(currentGraphMode){
-    //                case GRAPH_MODE_DAY:
-    //                    //clearPlotXLabels();
-    //                    //drawPlotDayXLabels();
-    //                    //collectDayData();
-    //                    //plotTemp(240);
-    //                    break;
-    //                case GRAPH_MODE_WEEK:
-    //                    //clearPlotXLabels();
-    //                    //drawPlotWeekXLabels();
-    //                    //collectWeekData();
-    //                    //plotTemp(336);
-    //                    break;
-    //                case GRAPH_MODE_MONTH:
-    //                    //clearPlotXLabels();
-    //                    //drawPlotMonthXLabels();
-    //                    //collectMonthData();
-    //                    //plotTemp(360);
-    //                    break;
-    //                case GRAPH_MODE_YEAR:
-    //                    //clearPlotXLabels();
-    //                    //drawPlotYearXLabels();
-    //                    //collectYearData();
-    //                    //plotTemp(365);
-    //                    break;    
-    //                    
-    //            }
+
+    //if(oldMinuteOfDay != minuteOfDay){
+    //    if((minuteOfDay % 6 == 0)){
+    //Write temperature to memory
+    //unsigned char sampleIndex = minuteOfDay / 6;
+    //ext_mem_write((currentEEPROMPage<<8)+2+sampleIndex , currentTemperatureByte);
     //    }
-    //    }
-    //    
-    //    fast_tasks_timer--;
-    //    slow_tasks_timer--;
-    //    
-    //    //if(oldMinuteOfDay != minuteOfDay){
-    //    //    if((minuteOfDay % 6 == 0)){
-    //            //Write temperature to memory
-    //            //unsigned char sampleIndex = minuteOfDay / 6;
-    //            //ext_mem_write((currentEEPROMPage<<8)+2+sampleIndex , currentTemperatureByte);
-    //    //    }
-    //    //}
-    //    if(oldDay != currentDay){
-    //        //incrementEEPROMPageIndex();
-    //    }
-    //    
-    //    //pros_seconds.all = 0;
-    //    //pros_minutes.all = 0;
-    //    //pros_hours.all = 0;
-    //    //pros_date.all = 0;
-    //    //pros_month.all = 0;
-    //    //pros_years.all = 0;
-    //    //setTime();
-    //    //volatile unsigned char foo = readRTCReg(REG_CONTROL);
-    //    //foo = readRTCReg(REG_STAT);
-    //    //readAll();
-    //    //writeRTCReg(REG_CONTROL, 0b10000100); //Enable write
-    //    //foo = readRTCReg(REG_CONTROL);
-    //    //writeRTCReg(REG_CONTROL, 0b00000100); //Enable oscillator
-    //    //foo = readRTCReg(REG_CONTROL);
-    //    __delay_ms(1);
+    //}
+    if (oldDay != currentDay) {
+        //incrementEEPROMPageIndex();
+    }
+
+    //pros_seconds.all = 0;
+    //pros_minutes.all = 0;
+    //pros_hours.all = 0;
+    //pros_date.all = 0;
+    //pros_month.all = 0;
+    //pros_years.all = 0;
+    //setTime();
+    //volatile unsigned char foo = readRTCReg(REG_CONTROL);
+    //foo = readRTCReg(REG_STAT);
+    //readAll();
+    //writeRTCReg(REG_CONTROL, 0b10000100); //Enable write
+    //foo = readRTCReg(REG_CONTROL);
+    //writeRTCReg(REG_CONTROL, 0b00000100); //Enable oscillator
+    //foo = readRTCReg(REG_CONTROL);
+    __delay_ms(1);
 }
 
 void getResetCause(void) {

@@ -13,23 +13,18 @@
 #include "SPI.h"
 #include "I2C.h"
 #include "UI.h"
-//#include "sd_spi/sd_spi.h"
-//#include "fatfs/fatfs_demo.h"
 #include "MDD_File_System/SD-SPI.h"
 #include "MDD_File_System/FSIO.h"
 #include "time.h"
 
-#define FAST_TASKS_RATE 100
-#define SLOW_TASKS_RATE 10000
+#define MINOR_CYCLE_TIME_LIMIT_MS   100
+#define MAJOR_CYCLE_LENGTH  10
 
 unsigned char init(void);
 void run(void);
 void updateButtons(void);
 void handleButtonActions(void);
 void getResetCause(void);
-
-unsigned int fast_tasks_timer = FAST_TASKS_RATE;
-unsigned int slow_tasks_timer = SLOW_TASKS_RATE;
 
 #endif
 

@@ -13,6 +13,8 @@ volatile uint16_t monoMillis = 0; //Monotonic millisecond counter
 void timerInit(void);
 inline void getMillis(uint16_t *destination);
 
+void variableDelayMs(uint16_t ms);
+
 #endif
 
 

@@ -2,6 +2,7 @@
 #define	UI_H
 
 #include "common.h"
+#include "display.h"
 
 union buttonReg{
     unsigned char all;
@@ -21,7 +22,7 @@ union buttonReg oldButtonState;
 union buttonReg buttonPressed;
 
 uint8_t UI_init(void);
-void UI_periodic(void);
+void UI_periodic(uint8_t minorCycle);
 void updateButtons(void);
 void handleButtonActions(void);
 
