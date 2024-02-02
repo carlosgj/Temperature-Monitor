@@ -145,43 +145,21 @@ typedef struct
 
 // Summary: An SD command packet
 // Description: This union represents different ways to access an SD card command packet
-typedef union
-{
+typedef union{
     // This structure allows array-style access of command bytes
-    struct
-    {
-        #ifdef __18CXX
-            uint8_t field[6];      // uint8_t array
-        #else
-            uint8_t field[7];
-        #endif
-#if defined(__STM32F10X__)
-    } bytes;
-#else
-    };
-#endif
-    // This structure allows byte-wise access of packet command bytes
-    struct
-    {
-        uint8_t crc;               // The CRC byte
-        #if defined __C30__
-            uint8_t c30filler;     // Filler space (since bitwise declarations can't cross a uint16_t boundary)
-        #elif defined __C32__
-            uint8_t c32filler[3];  // Filler space (since bitwise declarations can't cross a uint32_t boundary)
-        #elif defined __STM32F10X__
-            uint8_t c32filler[3];  // Filler space (since bitwise declarations can't cross a uint32_t boundary)
-        #endif
+    struct{
+        uint8_t field[6];      // uint8_t array
 
+    };
+    // This structure allows byte-wise access of packet command bytes
+    struct{
+        uint8_t crc;               // The CRC byte
         uint8_t addr0;             // Address byte 0
         uint8_t addr1;             // Address byte 1
         uint8_t addr2;             // Address byte 2
         uint8_t addr3;             // Address byte 3
         uint8_t cmd;               // Command code byte
-#if defined(__STM32F10X__)
-    } cmds;
-#else
     };
-#endif
     // This structure allows bitwise access to elements of the command bytes
     struct
     {

@@ -85,15 +85,11 @@ static MEDIA_INFORMATION mediaInformation;
 static ASYNC_IO ioInfo; //Declared global context, for fast/code efficient access
 
 
-#ifdef __18CXX
-    // Summary: Table of SD card commands and parameters
-    // Description: The sdmmc_cmdtable contains an array of SD card commands, the corresponding CRC code, the
-    //              response type that the card will return, and a parameter indicating whether to expect
-    //              additional data from the card.
-    const rom typMMC_CMD sdmmc_cmdtable[] =
-#else
-    const typMMC_CMD sdmmc_cmdtable[] =
-#endif
+// Summary: Table of SD card commands and parameters
+// Description: The sdmmc_cmdtable contains an array of SD card commands, the corresponding CRC code, the
+//              response type that the card will return, and a parameter indicating whether to expect
+//              additional data from the card.
+const typMMC_CMD sdmmc_cmdtable[] =
 {
     // cmd                      crc     response
     {cmdGO_IDLE_STATE,          0x95,   R1,     NODATA},
@@ -132,15 +128,12 @@ MMC_RESPONSE SendMMCCmd(uint8_t cmd, uint32_t address);
     void OpenSPIM ( unsigned int sync_mode);
     void CloseSPIM( void );
     unsigned char WriteSPIM( unsigned char data_out );
-#elif defined __18CXX
-    void OpenSPIM ( unsigned char sync_mode);
-    void CloseSPIM( void );
-    unsigned char WriteSPIM( unsigned char data_out );
-
-    unsigned char WriteSPIManual(unsigned char data_out);
-    uint8_t ReadMediaManual (void);
-    MMC_RESPONSE SendMMCCmdManual(uint8_t cmd, uint32_t address);
 #endif
+void OpenSPIM ( unsigned char sync_mode);
+unsigned char WriteSPIManual(unsigned char data_out);
+uint8_t ReadMediaManual (void);
+MMC_RESPONSE SendMMCCmdManual(uint8_t cmd, uint32_t address);
+
 void InitSPISlowMode(void);
 
 //Private function prototypes
@@ -164,47 +157,6 @@ static void PIC18_Optimized_SPI_Read_Packet(void);
 #define WriteSPIM           SPI2Transfer
 #define CloseSPIM           SPI2_Close
 //------------------------------------------------------------------------------
-
-
-#ifdef __PIC32MX__
-/*********************************************************
-  Function:
-    static inline __attribute__((always_inline)) unsigned char SPICacutateBRG (unsigned int pb_clk, unsigned int spi_clk)
-  Summary:
-    Calculate the PIC32 SPI BRG value
-  Conditions:
-    None
-  Input:
-    pb_clk -  The value of the PIC32 peripheral clock
-    spi_clk - The desired baud rate
-  Return:
-    The corresponding BRG register value.
-  Side Effects:
-    None.
-  Description:
-    The SPICalutateBRG function is used to determine an appropriate BRG register value for the PIC32 SPI module.
-  Remarks:
-    None                                                  
-  *********************************************************/
-
-static inline __attribute__((always_inline)) unsigned char SPICalutateBRG(unsigned int pb_clk, unsigned int spi_clk)
-{
-    unsigned int brg;
-
-    brg = pb_clk / (2 * spi_clk);
-
-    if (pb_clk % (2 * spi_clk))
-        brg++;
-
-    if (brg > 0x100)
-        brg = 0x100;
-
-    if (brg)
-        brg--;
-
-    return (unsigned char) brg;
-}
-#endif
 
 
 /*********************************************************
@@ -619,132 +571,6 @@ MMC_RESPONSE SendMMCCmd(uint8_t cmd, uint32_t address)
 
     return(response);
 }
-
-#ifdef __18CXX
-/*****************************************************************************
-  Function:
-    MMC_RESPONSE SendMMCCmdManual (uint8_t cmd, uint32_t address)
-  Summary:
-    Sends a command packet to the SD card with bit-bang SPI.
-  Conditions:
-    None.
-  Input:
-    Need input cmd index into a rom table of implemented commands.
-    Also needs 4 bytes of data as address for some commands (also used for
-    other purposes in other commands).
-  Return Values:
-    Assuming an "R1" type of response, each bit will be set depending upon status:
-    MMC_RESPONSE    - The response from the card
-                    - Bit 0 - Idle state
-                    - Bit 1 - Erase Reset
-                    - Bit 2 - Illegal Command
-                    - Bit 3 - Command CRC Error
-                    - Bit 4 - Erase Sequence Error
-                    - Bit 5 - Address Error
-                    - Bit 6 - Parameter Error
-                    - Bit 7 - Unused. Always 0.
-    Other response types (ex: R3/R7) have up to 5 bytes of response.  The first
-    byte is always the same as the R1 response.  The contents of the other bytes 
-    depends on the command.
-  Side Effects:
-    None.
-  Description:
-    SendMMCCmd prepares a command packet and sends it out over the SPI interface.
-    Response data of type 'R1' (as indicated by the SD/MMC product manual is returned.
-    This function is intended to be used when the clock speed of a PIC18 device is
-    so high that the maximum SPI divider can't reduce the clock below the maximum
-    SD card initialization sequence speed.
-  Remarks:
-    None.
-  ***************************************************************************************/
-MMC_RESPONSE SendMMCCmdManual(uint8_t cmd, uint32_t address)
-{
-    uint8_t index;
-    MMC_RESPONSE    response;
-    CMD_PACKET  CmdPacket;
-    uint16_t timeout;
-    
-    SD_CS = 0;                           //Select card
-    
-    // Copy over data
-    CmdPacket.cmd        = sdmmc_cmdtable[cmd].CmdCode;
-    CmdPacket.address    = address;
-    CmdPacket.crc        = sdmmc_cmdtable[cmd].CRC;       // Calc CRC here
-    
-    CmdPacket.TRANSMIT_BIT = 1;             //Set Tranmission bit
-    
-    WriteSPIManual(CmdPacket.cmd);                //Send Command
-    WriteSPIManual(CmdPacket.addr3);              //Most Significant Byte
-    WriteSPIManual(CmdPacket.addr2);
-    WriteSPIManual(CmdPacket.addr1);
-    WriteSPIManual(CmdPacket.addr0);              //Least Significant Byte
-    WriteSPIManual(CmdPacket.crc);                //Send CRC
-
-    //Special handling for CMD12 (STOP_TRANSMISSION).  The very first byte after
-    //sending the command packet may contain bogus non-0xFF data.  This 
-    //"residual data" byte should not be interpreted as the R1 response byte.
-    if (cmd == STOP_TRANSMISSION)
-    {
-        ReadMediaManual(); //Perform dummy read to fetch the residual non R1 byte
-    } 
-
-    //Loop until we get a response from the media.  Delay (NCR) could be up 
-    //to 8 SPI byte times.  First byte of response is always the equivalent of 
-    //the R1 byte, even for R1b, R2, R3, R7 responses.
-    timeout = NCR_TIMEOUT;
-    do
-    {
-        response.r1._byte = ReadMediaManual();
-        timeout--;
-    }while((response.r1._byte == MMC_FLOATING_BUS) && (timeout != 0));
-    
-    
-    //Check if we should read more bytes, depending upon the response type expected.  
-    if (sdmmc_cmdtable[cmd].responsetype == R2)
-    {
-        response.r2._byte1 = response.r1._byte; //We already received the first byte, just make sure it is in the correct location in the struct.
-        response.r2._byte0 = ReadMediaManual(); //Fetch the second byte of the response.
-    }
-    else if (sdmmc_cmdtable[cmd].responsetype == R1b)
-    {
-        //Keep trying to read from the media, until it signals it is no longer
-        //busy.  It will continuously send 0x00 bytes until it is not busy.
-        //A non-zero value means it is ready for the next command.
-        timeout = 0xFFFF;
-        do
-        {
-            response.r1._byte = ReadMediaManual();
-            timeout--;
-        }while((response.r1._byte == 0x00) && (timeout != 0));
-
-        response.r1._byte = 0x00;
-    }
-    else if (sdmmc_cmdtable[cmd].responsetype == R7) //also used for response R3 type
-    {
-        //Fetch the other four bytes of the R3 or R7 response.
-        //Note: The SD card argument response field is 32-bit, big endian format.
-        //However, the C compiler stores 32-bit values in little endian in RAM.
-        //When writing to the _returnVal/argument bytes, make sure the order it 
-        //gets stored in is correct.      
-        response.r7.bytewise.argument._byte3 = ReadMediaManual();
-        response.r7.bytewise.argument._byte2 = ReadMediaManual();
-        response.r7.bytewise.argument._byte1 = ReadMediaManual();
-        response.r7.bytewise.argument._byte0 = ReadMediaManual();
-    }
-
-    WriteSPIManual(0xFF);    //Device requires at least 8 clock pulses after 
-                             //the response has been sent, before if can process
-                             //the next command.  CS may be high or low.
-
-    // see if we are expecting more data or not
-    if (!(sdmmc_cmdtable[cmd].moredataexpected))
-        SD_CS = 1;
-
-    return(response);
-}
-#endif
-
-
 
 /*****************************************************************************
   Function:
@@ -1691,116 +1517,6 @@ uint8_t MDD_SDSPI_ReadMedia(void){
     return SPI2Transfer(0xff);
 }
 
-
-#ifdef __18CXX
-// Description: Delay value for the manual SPI clock
-#define MANUAL_SPI_CLOCK_VALUE             1
-/*****************************************************************************
-  Function:
-    unsigned char WriteSPIManual (unsigned char data_out)
-  Summary:
-    Write a character to the SD card with bit-bang SPI.
-  Conditions:
-    Make sure the SDI pin is pre-configured as a digital pin, if it is 
-    multiplexed with analog functionality.
-  Input:
-    data_out - Data to send.
-  Return:
-    0.
-  Side Effects:
-    None.
-  Description:
-    Writes a character to the SD card.
-  Remarks:
-    The WriteSPIManual function is for use on a PIC18 when the clock speed is so
-    high that the maximum SPI clock divider cannot reduce the SPI clock speed below
-    the maximum SD card initialization speed.
-  ***************************************************************************************/
-unsigned char WriteSPIManual(unsigned char data_out)
-{
-    unsigned char i;
-    unsigned char clock;
-
-    SPICLOCKLAT = 0;
-    SPIOUTLAT = 1;
-    SPICLOCK = OUTPUT;
-    SPIOUT = OUTPUT;
-
-	//Loop to send out 8 bits of SDO data and associated SCK clock.
-	for(i = 0; i < 8; i++)
-	{
-		SPICLOCKLAT = 0;
-		if (data_out & 0x80)
-			SPIOUTLAT = 1;
-		else
-			SPIOUTLAT = 0;
-		data_out = data_out << 1;				//Bit shift, so next bit to send is in MSb position
-    	clock = MANUAL_SPI_CLOCK_VALUE;
-    	while (clock--);
-    	SPICLOCKLAT = 1;
-    	clock = MANUAL_SPI_CLOCK_VALUE;
-    	while (clock--);    			
-	}	
-    SPICLOCKLAT = 0;
-
-    return 0; 
-}
-
-
-/*****************************************************************************
-  Function:
-    uint8_t ReadMediaManual (void)
-  Summary:
-    Reads a byte of data from the SD card.
-  Conditions:
-    None.
-  Input:
-    None.
-  Return:
-    The byte read.
-  Side Effects:
-    None.
-  Description:
-    The MDD_SDSPI_ReadMedia function will read one byte from the SPI port.
-  Remarks:
-    This function replaces ReadSPI, since some implementations of that function
-    will initialize SSPBUF/SPIBUF to 0x00 when reading.  The card expects 0xFF.
-    This function is for use on a PIC18 when the clock speed is so high that the
-    maximum SPI clock prescaler cannot reduce the SPI clock below the maximum SD card
-    initialization speed.
-  ***************************************************************************************/
-uint8_t ReadMediaManual (void)
-{
-    unsigned char i;
-    unsigned char clock;
-    unsigned char result = 0x00;
-
-    SPIOUTLAT = 1;
-    SPIOUT = OUTPUT;
-    SPIIN = INPUT;
-    SPICLOCKLAT = 0;
-    SPICLOCK = OUTPUT;
- 
- 	//Loop to send 8 clock pulses and read in the returned bits of data. Data "sent" will be = 0xFF
-	for(i = 0; i < 8u; i++)
-	{
-		SPICLOCKLAT = 0;
-    	clock = MANUAL_SPI_CLOCK_VALUE;
-    	while (clock--);
-    	SPICLOCKLAT = 1;
-    	clock = MANUAL_SPI_CLOCK_VALUE;
-    	while (clock--);
-		result = result << 1;	//Bit shift the previous result.  We receive the byte MSb first. This operation makes LSb = 0.  
-    	if (SPIINPORT)
-    		result++;			//Set the LSb if we detected a '1' on the SPIINPORT pin, otherwise leave as 0.
-	}	
-    SPICLOCKLAT = 0;
-
-    return result;
-}//end ReadMedia
-#endif      // End __18CXX
-
-
 /*****************************************************************************
   Function:
     MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize (void)
@@ -1983,7 +1699,7 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
         //If we get to here, the device supported the CMD8 command and didn't complain about our host
         //voltage range.
         //Most likely this means it is either a v2.0 spec standard or high capacity SD card (SDHC)
-        printf("SD: Media successfully processed CMD8. Response = %lX\n", ((uint32_t*)&response + 1));
+        printf("SD: Media successfully processed CMD8. Response = %lX\n", *((uint32_t*)&response + 1));
 
 		//Send CMD58 (Read OCR [operating conditions register]).  Reponse type is R3, which has 5 bytes.
 		//Byte 4 = normal R1 response byte, Bytes 3-0 are = OCR register value.
@@ -2100,7 +1816,7 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
         timeout--;
     }while((response.r1._byte != 0x00) && (timeout != 0));
     if (timeout != 0x00){
-        printf("SD: CMD9 Successfully processed at line %u: Read CSD register. CMD9 response R1 byte = %X\n", __LINE__, (unsigned char*)&response);
+        printf("SD: CMD9 Successfully processed at line %u: Read CSD register. CMD9 response R1 byte = %X\n", __LINE__, *((unsigned char*)&response));
     }    
     else{
         //Media failed to respond to the read CSD register operation.

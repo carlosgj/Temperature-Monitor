@@ -1496,11 +1496,7 @@ int FindNext (SearchRec * rec);
   **********************************************************************/
 
 #ifdef ALLOW_FSFPRINTF
-    #ifdef __18CXX
-        int FSfprintf (FSFILE *fptr, const rom char *fmt, ...);
-    #else
-        int FSfprintf (FSFILE *fptr, const char * fmt, ...);
-    #endif
+    int FSfprintf (FSFILE *fptr, const char * fmt, ...);
 #endif
 
 

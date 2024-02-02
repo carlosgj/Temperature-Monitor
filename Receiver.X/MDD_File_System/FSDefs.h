@@ -279,31 +279,15 @@ typedef struct
     uint8_t        SecPerClus;     // The number of sectors per cluster in the data region
     uint8_t        type;           // The file system type of the partition (FAT12, FAT16 or FAT32)
     uint8_t        mount;          // Device mount flag (TRUE if disk was mounted successfully, FALSE otherwise)
-#if defined __PIC32MX__ || defined __C30__
-} __attribute__ ((packed)) DISK;
-#else
 } DISK;
-#endif
 
 
-#ifdef __18CXX
-    // Summary: A 24-bit data type
-    // Description: The Suint16_t macro is used to defined a 24-bit data type.  For 16+ bit architectures, this must be represented as
-    //              an array of three bytes.
-    typedef unsigned short long Suint16_t;
-#else
-    // Summary: A 24-bit data type
-    // Description: The Suint16_t macro is used to defined a 24-bit data type.  For 16+ bit architectures, this must be represented as
-    //              an array of three bytes.
-    typedef struct
-    {
-        unsigned char array[3];
-#if defined __PIC32MX__ || defined __C30__
-    } __attribute__ ((packed)) Suint16_t;
-#else
-    } Suint16_t;
-#endif
-#endif
+
+// Summary: A 24-bit data type
+// Description: The Suint16_t macro is used to defined a 24-bit data type.  For 16+ bit architectures, this must be represented as
+//              an array of three bytes.
+typedef __uint24 Suint16_t;
+
 
 
 
