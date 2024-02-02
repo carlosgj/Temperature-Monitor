@@ -21,6 +21,9 @@
 
 #define SW_VER_STR "2.0.0"
 
+#define INTEN   INTCON0bits.GIE = TRUE
+#define INTDIS  INTCON0bits.GIE = FALSE
+
 #define STATUS_LEN (11)
 union status_t {
     unsigned char all[STATUS_LEN];

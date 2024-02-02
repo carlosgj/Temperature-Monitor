@@ -27,23 +27,8 @@ unsigned char init(void) {
     ANSELC = 0;
     ANSELD = 0;
 
-    //Setup timing & clocks
-    //OSCCON1bits.NDIV = 0b0000;
-    //Setup ms counter
-    //Osc speed = 64 MHz
-    //Instruction speed = 16 MHz
-    //Instruction cycle = 0.0625 us
-    //1:128 prescaler gives 8 us timer tick
-    //125 * 8 us = 1 ms
-    //Set timer initial value to 255-125=130 to roll over once per ms
-    //T0CON1bits.T0CS = 0b010; //Increment Timer0 on instruction cycle
-    //T0CON1bits.T0CKPS = 0b0111; //1:128 prescaler
-    //TMR0 = 130;
-    //PIE0bits.TMR0IE = TRUE;
-    //T0CON0bits.T0EN = TRUE; //Turn on timer
-
     //INTCON0bits.PEIE = TRUE; //Enable peripheral interrupts
-    INTCON0bits.GIE = TRUE; //Enable interrupts
+    INTEN; //Enable interrupts
     
     debug_UART_init();
     printf("\n--------------------------\n");
@@ -55,6 +40,8 @@ unsigned char init(void) {
     printf("Git ver: %s\n", GIT_VERSION);
     printf("\n");
 
+    timerInit();
+    
     printf("Initializing SPI...\n");
     SPIInit();
     printf("SPI initialized.\n\n");
@@ -143,10 +130,10 @@ unsigned char init(void) {
     }
     
     //Initialize SD card
-    printf("Initializing SD driver...\n");
-    //initErrorCode = SD_init();
+    printf("Initializing SD card driver...\n");
+    initErrorCode = FSInit();
     if(initErrorCode != 0){
-        printf("SD driver init error %d!\n", initErrorCode);
+        printf("SD card driver init error %d!\n", initErrorCode);
         initError = TRUE;
     }
     else{
@@ -154,29 +141,45 @@ unsigned char init(void) {
     }
     printf("\n");
     
-    
     printf("Running FAT demo\n");
-    //FatFsDemo_Tasks();
-    initErrorCode = FSInit();
-    if(initErrorCode){
-        printf("FS init success\n");
-    }
-    else{
-        printf("FS init fail\n");
-    }
     uint16_t foo = MDD_SDSPI_ReadSectorSize();
     printf("Sector size: %d\n", foo);
     
-    printf("Opening file...\n");
-    FSFILE *fob = FSfopen("test", "w+");
-    printf("File opened; pointer=%X.\n", (uint16_t)fob);
-    printf("Error: %d\n", FSerror());
-    printf("Writing to file...\n");
-    initErrorCode = (uint8_t)FSfwrite("Hello!", (size_t)1, (size_t)6, fob);
-    printf("Write result: %d\n", initErrorCode);
+    TRISCbits.TRISC7 = OUTPUT;
     
-    int16_t closeResult = FSfclose(fob);
-    printf("Close result: %d\n", closeResult);
+    uint8_t i;
+    uint16_t startTime, oldTime, newTime, endTime;
+    int16_t closeResult;
+    uint8_t dataToWrite[12];
+    uint8_t len;
+    FSFILE *fob;
+    for(i=0; i<2; i++){
+        getMillis(&startTime);
+        LATCbits.LATC7 = !LATCbits.LATC7;
+        printf("Opening file...\n");
+        getMillis(&oldTime);
+        fob = FSfopen("test", "a+");
+        getMillis(&newTime);
+        printf("File opened; pointer=%X.\n", (uint16_t)fob);
+        printf("Error: %d\n", FSerror());
+        printf("Open time: %d ms\n", newTime - oldTime);
+        
+        printf("Writing to file...\n");
+        getMillis(&oldTime);
+        len = sprintf(dataToWrite, "Line %d\n", i);
+        initErrorCode = (uint8_t)FSfwrite(dataToWrite, (size_t)1, (size_t)len, fob);
+        getMillis(&newTime);
+        printf("Write result: %d\n", initErrorCode);
+        printf("Write time: %d ms\n", newTime - oldTime);
+        
+        getMillis(&oldTime);
+        closeResult = FSfclose(fob);
+        getMillis(&newTime);
+        printf("Close result: %d\n", closeResult);
+        printf("Close time: %d ms\n", newTime - oldTime);
+        getMillis(&endTime);
+        printf("Total Time: %d\n", endTime - startTime);
+    }
     
     printf("FAT demo done.\n");
     

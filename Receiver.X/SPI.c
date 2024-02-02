@@ -52,7 +52,7 @@ void SPI2_Open_SDSlow(void){
     //SSP2CON1bits.SSPM = 0b0010; //Fosc/64
     //SSP2CON3bits.BOEN = TRUE;
     SPI2CLK = 0; //Fosc
-    SPI2BAUD = 255;
+    SPI2BAUD = 100;
     SPI2CON0bits.EN = TRUE; //Enable
 }
 

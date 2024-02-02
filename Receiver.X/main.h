@@ -17,6 +17,7 @@
 //#include "fatfs/fatfs_demo.h"
 #include "MDD_File_System/SD-SPI.h"
 #include "MDD_File_System/FSIO.h"
+#include "time.h"
 
 #define FAST_TASKS_RATE 100
 #define SLOW_TASKS_RATE 10000

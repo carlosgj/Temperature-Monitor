@@ -429,7 +429,7 @@ uint8_t FSInit(void)
     gLastDataSectorRead = 0xFFFFFFFF;  
 
     //MDD_InitIO();
-    printf("Attempting mount\n");
+    printf("FAT: Attempting mount\n");
     uint8_t error = DISKmount(&gDiskData);
     if (error == CE_GOOD){
     // Initialize the current working directory to the root
@@ -457,13 +457,13 @@ uint8_t FSInit(void)
 #endif
 
         FSerrno = 0;
-        return TRUE;
+        return error;
     }
     else{
-        printf("Mount error: %d\n", error);
+        printf("FAT: Mount error: %d\n", error);
     }
 
-    return FALSE;
+    return error;
 }
 
 
@@ -1557,20 +1557,20 @@ uint8_t DISKmount( DISK *dsk)
 
     // Initialize the device
     mediaInformation = MDD_MediaInitialize();
-    if (mediaInformation->errorCode != MEDIA_NO_ERROR)
-    {
+    if (mediaInformation->errorCode != MEDIA_NO_ERROR){
+        printf("FAT: Media initialize error!\n");
         error = CE_INIT_ERROR;
         FSerrno = CE_INIT_ERROR;
     }
-    else
-    {
+    else{
+        printf("FAT: Media initialized successfully.\n");
         // If the media initialization routine determined the sector size,
         // check it and make sure we can support it.
-        if (mediaInformation->validityFlags.bits.sectorSize)
-        {
+        if (mediaInformation->validityFlags.bits.sectorSize){
+            printf("FAT: Detected sector size: %u\n", mediaInformation->sectorSize);
 			dsk->sectorSize = mediaInformation->sectorSize;
-            if (mediaInformation->sectorSize > MEDIA_SECTOR_SIZE)
-            {
+            if (mediaInformation->sectorSize > MEDIA_SECTOR_SIZE){
+                printf("FAT: Unsupported sector size!\n");
                 error = CE_UNSUPPORTED_SECTOR_SIZE;
                 FSerrno = CE_UNSUPPORTED_SECTOR_SIZE;
                 return error;
@@ -1578,11 +1578,15 @@ uint8_t DISKmount( DISK *dsk)
         }
 
         // Load the Master Boot Record (partition)
-        if ((error = LoadMBR(dsk)) == CE_GOOD)
-        {
+        error = LoadMBR(dsk);
+        if (error == CE_GOOD){
+            printf("FAT: Loaded MBR.\n");
             // Now the boot sector
-            if ((error = LoadBootSector(dsk)) == CE_GOOD)
+            error = LoadBootSector(dsk);
+            if (error == CE_GOOD){
+                printf("FAT: Loaded boot sector.\n");
                 dsk->mount = TRUE; // Mark that the DISK mounted successfully
+            }
         }
     } // -- Load file parameters
 
@@ -1627,19 +1631,19 @@ uint8_t LoadMBR(DISK *dsk)
     uint8_t error = CE_GOOD;
     uint8_t type;
     BootSec BSec;
+    uint16_t i;
 
+    printf("FAT: Loading MBR (line %u)\n", __LINE__);
     // Get the partition table from the MBR
-    if ( MDD_SectorRead( FO_MBR, dsk->buffer) != TRUE)
-    {
+    if ( MDD_SectorRead( FO_MBR, dsk->buffer) != TRUE){
+        printf("FAT: Sector read failed!\n");
         error = CE_BAD_SECTOR_READ;
         FSerrno = CE_BAD_SECTOR_READ;
     }
-    else
-    {
-        printf("Read sector:");
-        uint16_t i;
+    else{
+        printf("FAT: Read sector:");
         for(i=0; i<512; i++){
-            printf(" %X", dsk->buffer[i]);
+            printf(" %02X", dsk->buffer[i]);
         }
         printf("\n");
         // Check if the card has no MBR
@@ -1650,39 +1654,22 @@ uint8_t LoadMBR(DISK *dsk)
          // Technically, the OEM name is not for indication
          // The alternative is to read the CIS from attribute
          // memory.  See the PCMCIA metaformat for more details
-#if defined (__C30__) || defined (__PIC32MX__) || defined (__STM32F10X__)
-            if ((ReadByte( dsk->buffer, BSI_FSTYPE ) == 'F') && \
-            (ReadByte( dsk->buffer, BSI_FSTYPE + 1 ) == 'A') && \
-            (ReadByte( dsk->buffer, BSI_FSTYPE + 2 ) == 'T') && \
-            (ReadByte( dsk->buffer, BSI_FSTYPE + 3 ) == '1') && \
-            (ReadByte( dsk->buffer, BSI_BOOTSIG) == 0x29))
-#else
             if ((BSec->FAT.FAT_16.BootSec_FSType[0] == 'F') && \
                 (BSec->FAT.FAT_16.BootSec_FSType[1] == 'A') && \
                 (BSec->FAT.FAT_16.BootSec_FSType[2] == 'T') && \
                 (BSec->FAT.FAT_16.BootSec_FSType[3] == '1') && \
                 (BSec->FAT.FAT_16.BootSec_BootSig == 0x29))
-#endif
              {
                 dsk->firsts = 0;
                 dsk->type = FAT16;
                 return CE_GOOD;
              }
-             else
-             {
-#if defined (__C30__) || defined (__PIC32MX__) || defined (__STM32F10X__)
-                if ((ReadByte( dsk->buffer, BSI_FAT32_FSTYPE ) == 'F') && \
-                    (ReadByte( dsk->buffer, BSI_FAT32_FSTYPE + 1 ) == 'A') && \
-                    (ReadByte( dsk->buffer, BSI_FAT32_FSTYPE + 2 ) == 'T') && \
-                    (ReadByte( dsk->buffer, BSI_FAT32_FSTYPE + 3 ) == '3') && \
-                    (ReadByte( dsk->buffer, BSI_FAT32_BOOTSIG) == 0x29))
-#else
+             else{
                 if ((BSec->FAT.FAT_32.BootSec_FilSysType[0] == 'F') && \
                     (BSec->FAT.FAT_32.BootSec_FilSysType[1] == 'A') && \
                     (BSec->FAT.FAT_32.BootSec_FilSysType[2] == 'T') && \
                     (BSec->FAT.FAT_32.BootSec_FilSysType[3] == '3') && \
                     (BSec->FAT.FAT_32.BootSec_BootSig == 0x29))
-#endif
                 {
                     dsk->firsts = 0;
                     dsk->type = FAT32;
@@ -1694,13 +1681,11 @@ uint8_t LoadMBR(DISK *dsk)
         Partition = (PT_MBR)dsk->buffer;
 
         // Ensure its good
-        if ((Partition->Signature0 != FAT_GOOD_SIGN_0) || (Partition->Signature1 != FAT_GOOD_SIGN_1))
-        {
+        if ((Partition->Signature0 != FAT_GOOD_SIGN_0) || (Partition->Signature1 != FAT_GOOD_SIGN_1)){
             FSerrno = CE_BAD_PARTITION;
             error = CE_BAD_PARTITION;
         }
-        else
-        {
+        else{
             /*    Valid Master Boot Record Loaded   */
 
             // Get the 32 bit offset to the first partition
@@ -1709,8 +1694,7 @@ uint8_t LoadMBR(DISK *dsk)
             // check if the partition type is acceptable
               type = Partition->Partition0.PTE_FSDesc;
 
-            switch (type)
-            {
+            switch (type){
                 case 0x01:
                     dsk->type = FAT12;
                     break;
@@ -1771,31 +1755,37 @@ uint8_t LoadMBR(DISK *dsk)
   **************************************************************************/
 
 
-uint8_t LoadBootSector(DISK *dsk)
-{
+uint8_t LoadBootSector(DISK *dsk){
     uint32_t       RootDirSectors;
     uint32_t       TotSec,DataSec;
     uint8_t        error = CE_GOOD;
     BootSec     BSec;
     uint16_t        BytesPerSec;
     uint16_t        ReservedSectorCount;
+    uint16_t i;
 
+    printf("FAT: Loading boot sector.\n");
+    
     #if defined(SUPPORT_FAT32)
     uint8_t        TriedSpecifiedBackupBootSec = FALSE;
     uint8_t        TriedBackupBootSecAtAddress6 = FALSE;
     #endif
     // Get the Boot sector
-    if ( MDD_SectorRead( dsk->firsts, dsk->buffer) != TRUE)
-    {
+    if ( MDD_SectorRead( dsk->firsts, dsk->buffer) != TRUE){
+        printf("FAT: Sector read failed!\n");
         error = CE_BAD_SECTOR_READ;
     }
-    else
-    {
+    
+    else{
+        printf("FAT: Read sector:");
+        for(i=0; i<512; i++){
+            printf(" %02X", dsk->buffer[i]);
+        }
+        printf("\n");
+        
         BSec = (BootSec)dsk->buffer;
 
-        do      //test each possible boot sector (FAT32 can have backup boot sectors)
-        {
-
+        do{      //test each possible boot sector (FAT32 can have backup boot sectors)
             //Verify the Boot Sector has a valid signature
             if (    (BSec->Signature0 != FAT_GOOD_SIGN_0)
                 || (BSec->Signature1 != FAT_GOOD_SIGN_1)
