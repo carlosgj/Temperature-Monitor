@@ -29,13 +29,13 @@
 #include "SPI.h"
 #include "pindef.h"
 
-volatile unsigned char RFM69_haveData;
+volatile uint8_t RFM69_haveData;
 
-unsigned char RFM69_promiscuousMode = TRUE;
-unsigned char RFM69_powerLevel = 31;
+uint8_t RFM69_promiscuousMode = TRUE;
+uint8_t RFM69_powerLevel = 31;
 
-unsigned char RFM69_initialize(unsigned char nodeID) {
-    unsigned char CONFIG[][2] ={
+uint8_t RFM69_initialize(uint8_t nodeID) {
+    uint8_t CONFIG[][2] ={
         /* 0x01 */
         { REG_OPMODE, RF_OPMODE_SEQUENCER_ON | RF_OPMODE_LISTEN_OFF | RF_OPMODE_STANDBY},
         /* 0x02 */
@@ -50,11 +50,11 @@ unsigned char RFM69_initialize(unsigned char nodeID) {
         { REG_FDEVLSB, RF_FDEVLSB_5000},
 
         /* 0x07 */
-        { REG_FRFMSB, (unsigned char) RF_FRFMSB_915},
+        { REG_FRFMSB, (uint8_t) RF_FRFMSB_915},
         /* 0x08 */
-        { REG_FRFMID, (unsigned char) RF_FRFMID_915},
+        { REG_FRFMID, (uint8_t) RF_FRFMID_915},
         /* 0x09 */
-        { REG_FRFLSB, (unsigned char) RF_FRFLSB_915},
+        { REG_FRFLSB, (uint8_t) RF_FRFLSB_915},
 
         // looks like PA1 and PA2 are not implemented on RFM69W, hence the max output power is 13dBm
         // +17dBm and +20dBm are possible on RFM69HW
@@ -98,14 +98,27 @@ unsigned char RFM69_initialize(unsigned char nodeID) {
         {255, 0}
     };
 
-    unsigned long start = ms_count;
-    unsigned char timeout = 50;
-    do RFM69_writeReg(REG_SYNCVALUE1, 0xAA); while (RFM69_readReg(REG_SYNCVALUE1) != 0xaa && ms_count - start < timeout);
-    start = ms_count;
-    do RFM69_writeReg(REG_SYNCVALUE1, 0x55); while (RFM69_readReg(REG_SYNCVALUE1) != 0x55 && ms_count - start < timeout);
+    uint16_t start, now;
+    getMillis(&start);
+    uint8_t timeout = 50;
+    
+    RFM69_CS_TRIS = OUTPUT;
+    SPI2_Open_RFM69();
+    
+    do{
+        RFM69_writeReg(REG_SYNCVALUE1, 0xAA);
+        getMillis(&now);
+    }while ( RFM69_readReg(REG_SYNCVALUE1) != 0xaa && (now - start) < timeout);
+    
+    getMillis(&start);
+    do{
+        RFM69_writeReg(REG_SYNCVALUE1, 0x55);
+        getMillis(&now);
+    } while (RFM69_readReg(REG_SYNCVALUE1) != 0x55 && (now - start) < timeout);
 
-    for (unsigned char i = 0; CONFIG[i][0] != 255; i++)
+    for (uint8_t i = 0; CONFIG[i][0] != 255; i++){
         RFM69_writeReg(CONFIG[i][0], CONFIG[i][1]);
+    }
 
     // Encryption is persistent between resets and can trip you up during debugging.
     // Disable it during initialization so we always start from a known state.
@@ -113,14 +126,20 @@ unsigned char RFM69_initialize(unsigned char nodeID) {
 
     RFM69_setHighPower(_isRFM69HW); // called regardless if it's a RFM69W or RFM69HW
     RFM69_setMode(RF69_MODE_STANDBY);
-    start = ms_count;
-    while (((RFM69_readReg(REG_IRQFLAGS1) & RF_IRQFLAGS1_MODEREADY) == 0x00) && ms_count - start < timeout); // wait for ModeReady
+    
+    getMillis(&start);
+    while (((RFM69_readReg(REG_IRQFLAGS1) & RF_IRQFLAGS1_MODEREADY) == 0x00) && (now - start) < timeout){ // wait for ModeReady
+        getMillis(&now);
+    }
+    
+    SPI2_Close();
+    
     if (ms_count - start >= timeout)
-        return FALSE;
+        return 1;
     //attachInterrupt(_interruptNum, RFM69_isr0, RISING);
 
     _address = nodeID;
-    return TRUE;
+    return 0;
 }
 
 // return the frequency (in Hz)
@@ -132,7 +151,7 @@ unsigned long RFM69_getFrequency() {
 // set the frequency (in Hz)
 
 void RFM69_setFrequency(unsigned long freqHz) {
-    unsigned char oldMode = RFM69_mode;
+    uint8_t oldMode = RFM69_mode;
     if (oldMode == RF69_MODE_TX) {
         RFM69_setMode(RF69_MODE_RX);
     }
@@ -146,7 +165,7 @@ void RFM69_setFrequency(unsigned long freqHz) {
     RFM69_setMode(oldMode);
 }
 
-void RFM69_setMode(unsigned char newMode) {
+void RFM69_setMode(uint8_t newMode) {
     if (newMode == RFM69_mode)
         return;
 
@@ -187,14 +206,14 @@ void RFM69_sleep() {
 
 //set this node's address
 
-void RFM69_setAddress(unsigned char addr) {
+void RFM69_setAddress(uint8_t addr) {
     _address = addr;
     RFM69_writeReg(REG_NODEADRS, _address);
 }
 
 //set this node's network id
 
-void RFM69_setNetwork(unsigned char networkID) {
+void RFM69_setNetwork(uint8_t networkID) {
     RFM69_writeReg(REG_SYNCVALUE2, networkID);
 }
 
@@ -206,7 +225,7 @@ void RFM69_setNetwork(unsigned char networkID) {
 //       - for RFM69W the range is from 0-31 [-18dBm to 13dBm] (PA0 only on RFIO pin)
 //       - for RFM69HW the range is from 0-31 [5dBm to 20dBm]  (PA1 & PA2 on PA_BOOST pin & high Power PA settings - see section 3.3.7 in datasheet, p22)
 
-void RFM69_setPowerLevel(unsigned char powerLevel) {
+void RFM69_setPowerLevel(uint8_t powerLevel) {
     if (_powerLevel > 31) {
         _powerLevel = 31;
     }
@@ -216,7 +235,7 @@ void RFM69_setPowerLevel(unsigned char powerLevel) {
     RFM69_writeReg(REG_PALEVEL, (RFM69_readReg(REG_PALEVEL) & 0xE0) | _powerLevel);
 }
 
-unsigned char RFM69_canSend() {
+uint8_t RFM69_canSend() {
     if (RFM69_mode == RF69_MODE_RX && RFM69_PAYLOADLEN == 0 && RFM69_readRSSI() < CSMA_LIMIT) // if signal stronger than -100dBm is detected assume channel activity
     {
         RFM69_setMode(RF69_MODE_STANDBY);
@@ -250,14 +269,14 @@ void RFM69_interruptHandler() {
 
         RFM69_DATALEN = RFM69_PAYLOADLEN - 3;
         RFM69_SENDERID = SPI2Transfer(0);
-        unsigned char CTLbyte = SPI2Transfer(0);
+        uint8_t CTLbyte = SPI2Transfer(0);
 
         RFM69_ACK_RECEIVED = CTLbyte & RFM69_CTL_SENDACK; // extract ACK-received flag
         RFM69_ACK_REQUESTED = CTLbyte & RFM69_CTL_REQACK; // extract ACK-requested flag
 
         //interruptHook(CTLbyte); // TWS: hook to derived class interrupt function
 
-        for (unsigned char i = 0; i < RFM69_DATALEN; i++) {
+        for (uint8_t i = 0; i < RFM69_DATALEN; i++) {
             RFM69_DATA[i] = SPI2Transfer(0);
         }
         if (RFM69_DATALEN < RF69_MAX_DATA_LEN) RFM69_DATA[RFM69_DATALEN] = 0; // add null at end of string
@@ -292,7 +311,7 @@ void RFM69_receiveBegin() {
 
 // checks if a packet was received and/or puts transceiver in receive (ie RX or listen) mode
 
-unsigned char RFM69_receiveDone() {
+uint8_t RFM69_receiveDone() {
     //ATOMIC_BLOCK(ATOMIC_FORCEON)
     //{
     if (_haveData) {
@@ -320,7 +339,7 @@ void RFM69_encrypt(const char* key) {
     if (key != 0) {
         RFM69_CS_LAT = FALSE;
         SPI2Transfer(REG_AESKEY1 | 0x80);
-        for (unsigned char i = 0; i < 16; i++)
+        for (uint8_t i = 0; i < 16; i++)
             SPI2Transfer(key[i]);
         RFM69_CS_LAT = TRUE;
     }
@@ -330,7 +349,7 @@ void RFM69_encrypt(const char* key) {
 // get the received signal strength indicator (RSSI)
 
 signed int RFM69_readRSSI() {
-    unsigned char forceTrigger = FALSE;
+    uint8_t forceTrigger = FALSE;
     signed int rssi = 0;
     if (forceTrigger) {
         // RSSI trigger not needed if DAGC is in continuous mode
@@ -345,14 +364,14 @@ signed int RFM69_readRSSI() {
 // TRUE  = disable filtering to capture all frames on network
 // FALSE = enable node/broadcast filtering to capture only frames sent to this/broadcast address
 
-void RFM69_promiscuous(unsigned char onOff) {
+void RFM69_promiscuous(uint8_t onOff) {
     RFM69_promiscuousMode = onOff;
     //RFM69_writeReg(REG_PACKETCONFIG1, (RFM69_readReg(REG_PACKETCONFIG1) & 0xF9) | (onOff ? RF_PACKET1_ADRSFILTERING_OFF : RF_PACKET1_ADRSFILTERING_NODEBROADCAST));
 }
 
 // for RFM69HW only: you must call setHighPower(TRUE) after initialize() or else transmission won't work
 
-void RFM69_setHighPower(unsigned char onOff) {
+void RFM69_setHighPower(uint8_t onOff) {
     _isRFM69HW = onOff;
     RFM69_writeReg(REG_OCP, _isRFM69HW ? RF_OCP_OFF : RF_OCP_ON);
     if (_isRFM69HW) // turning ON
@@ -363,7 +382,7 @@ void RFM69_setHighPower(unsigned char onOff) {
 
 // internal function
 
-void RFM69_setHighPowerRegs(unsigned char onOff) {
+void RFM69_setHighPowerRegs(uint8_t onOff) {
     RFM69_writeReg(REG_TESTPA1, onOff ? 0x5D : 0x55);
     RFM69_writeReg(REG_TESTPA2, onOff ? 0x7C : 0x70);
 }
@@ -373,7 +392,7 @@ void RFM69_rcCalibration() {
     while ((RFM69_readReg(REG_OSC1) & RF_OSC1_RCCAL_DONE) == 0x00);
 }
 
-void RFM69_writeReg(unsigned char address, unsigned char data){
+void RFM69_writeReg(uint8_t address, uint8_t data){
     address |= 0b10000000; //Set MSB to 1 for write
     RFM69_CS_LAT = FALSE; //select radio
     SPI2Transfer(address);
@@ -381,11 +400,11 @@ void RFM69_writeReg(unsigned char address, unsigned char data){
     RFM69_CS_LAT = TRUE; //Deselect radio
 }
 
-unsigned char RFM69_readReg(unsigned char address){
+uint8_t RFM69_readReg(uint8_t address){
     address &= 0b01111111; //Set MSB to 0 for read
     RFM69_CS_LAT = FALSE; //select radio
     SPI2Transfer(address);
-    unsigned char result = SPI2Transfer(0);
+    uint8_t result = SPI2Transfer(0);
     RFM69_CS_LAT = TRUE; //Deselect radio
     return result;
 }
@@ -400,14 +419,14 @@ volatile unsigned int RFM69_RF69_LISTEN_BURST_REMAINING_MS = 0;
 // reinitRadio() - use base class initialization with saved values
 //=============================================================================
 
-unsigned char RFM69_reinitRadio() {
+uint8_t RFM69_reinitRadio() {
     if (!initialize(_freqBand, _address, _networkID)) return FALSE;
     if (_haveEncryptKey) RFM69_encrypt(_encryptKey); // Restore the encryption key if necessary
     if (_isHighSpeed) RFM69_writeReg(REG_LNA, (RFM69_readReg(REG_LNA) & ~0x3) | RF_LNA_GAINSELECT_AUTO);
     return TRUE;
 }
 
-static unsigned long getUsForResolution(unsigned char resolution) {
+static unsigned long getUsForResolution(uint8_t resolution) {
     switch (resolution) {
         case RF_LISTEN1_RESOL_RX_64:
         case RF_LISTEN1_RESOL_IDLE_64:
@@ -424,7 +443,7 @@ static unsigned long getUsForResolution(unsigned char resolution) {
     }
 }
 
-static unsigned long getCoefForResolution(unsigned char resolution, unsigned long duration) {
+static unsigned long getCoefForResolution(uint8_t resolution, unsigned long duration) {
     unsigned long resolDuration = getUsForResolution(resolution);
     unsigned long result = duration / resolDuration;
 
@@ -435,7 +454,7 @@ static unsigned long getCoefForResolution(unsigned char resolution, unsigned lon
     return result;
 }
 
-static unsigned char chooseResolutionAndCoef(unsigned char *resolutions, unsigned long duration, unsigned char& resolOut, unsigned char& coefOut) {
+static uint8_t chooseResolutionAndCoef(uint8_t *resolutions, unsigned long duration, uint8_t& resolOut, uint8_t& coefOut) {
     for (int i = 0; resolutions[i]; i++) {
         unsigned long coef = getCoefForResolution(resolutions[i], duration);
         if (coef <= 255) {

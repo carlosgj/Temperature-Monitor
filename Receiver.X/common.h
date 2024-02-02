@@ -7,7 +7,7 @@
 #include "FIFO.h"
 #include "gitVersion.h"
 #include "pindef.h"
-//#include "fatfs/ff.h"
+#include "time.h"
 
 #pragma warning disable 520
 
@@ -74,9 +74,6 @@ unsigned char tempData[365] = {140, 146, 154, 162, 170, 178, 184, 190, 196, 202,
 const unsigned char daysPerMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 FIFO DbgUARTRxBuf;
-
-//FATFS drive;
-//FIL file;
 
 #endif	/* XC_HEADER_TEMPLATE_H */
 

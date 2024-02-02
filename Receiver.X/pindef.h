@@ -24,6 +24,8 @@
 #define MISO2_TRIS          TRISDbits.TRISD2
 #define SD_CS_TRIS          TRISDbits.TRISD4
 #define SD_CS_LAT           LATDbits.LATD4
+#define RFM69_CS_TRIS       TRISCbits.TRISC5
+#define RFM69_CS_LAT        LATCbits.LATC5
 
 #define BUTTON1_TRIS        TRISAbits.TRISA0
 #define BUTTON2_TRIS        TRISAbits.TRISA1
