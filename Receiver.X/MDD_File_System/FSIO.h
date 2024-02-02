@@ -225,26 +225,26 @@ typedef enum{
 typedef struct
 {
     DISK    *       dsk;            // Pointer to a DISK structure
-    uint32_t           cluster;        // The first cluster of the file
-    uint32_t           ccls;           // The current cluster of the file
-    uint16_t            sec;            // The current sector in the current cluster of the file
-    uint16_t            pos;            // The position in the current sector
-    uint32_t           seek;           // The absolute position in the file
-    uint32_t           size;           // The size of the file
+    uint32_t        cluster;        // The first cluster of the file
+    uint32_t        ccls;           // The current cluster of the file
+    uint16_t        sec;            // The current sector in the current cluster of the file
+    uint16_t        pos;            // The position in the current sector
+    uint32_t        seek;           // The absolute position in the file
+    uint32_t        size;           // The size of the file
     FILEFLAGS       flags;          // A structure containing file flags
-    uint16_t            time;           // The file's last update time
-    uint16_t            date;           // The file's last update date
-    char            name[FILE_NAME_SIZE_8P3];       // The short name of the file
+    uint16_t        time;           // The file's last update time
+    uint16_t        date;           // The file's last update date
+    uint8_t         name[FILE_NAME_SIZE_8P3];       // The short name of the file
 	#ifdef SUPPORT_LFN
     	uint8_t			AsciiEncodingType;          // Ascii file name or Non-Ascii file name indicator
 		unsigned short int *utf16LFNptr;	        // Pointer to long file name in UTF16 format
 		unsigned short int utf16LFNlength;          // LFN length in terms of words excluding the NULL word at the last.
 	#endif
-    uint16_t            entry;          // The position of the file's directory entry in it's directory
-    uint16_t            chk;            // File structure checksum
-    uint16_t            attributes;     // The file attributes
-    uint32_t           dirclus;        // The base cluster of the file's directory
-    uint32_t           dirccls;        // The current cluster of the file's directory
+    uint16_t        entry;          // The position of the file's directory entry in it's directory
+    uint16_t        chk;            // File structure checksum
+    uint8_t         attributes;     // The file attributes
+    uint32_t        dirclus;        // The base cluster of the file's directory
+    uint32_t        dirccls;        // The current cluster of the file's directory
 } FSFILE;
 
 /* Summary: Possible results of the FSGetDiskProperties() function.
@@ -296,20 +296,20 @@ typedef struct
 //              searches to be perfomed in the same directory for additional files that meet the specified criteria.
 typedef struct
 {
-    char            filename[FILE_NAME_SIZE_8P3 + 2];   // The name of the file that has been found
-    unsigned char   attributes;                     // The attributes of the file that has been found
-    unsigned long   filesize;                       // The size of the file that has been found
-    unsigned long   timestamp;                      // The last modified time of the file that has been found (create time for directories)
+    uint8_t         filename[FILE_NAME_SIZE_8P3 + 2];   // The name of the file that has been found
+    uint8_t         attributes;                     // The attributes of the file that has been found
+    uint32_t        filesize;                       // The size of the file that has been found
+    uint32_t        timestamp;                      // The last modified time of the file that has been found (create time for directories)
 	#ifdef SUPPORT_LFN
 		uint8_t			AsciiEncodingType;          // Ascii file name or Non-Ascii file name indicator
 		unsigned short int *utf16LFNfound;		    // Pointer to long file name found in UTF16 format
 		unsigned short int utf16LFNfoundLength;     // LFN Found length in terms of words including the NULL word at the last.
 	#endif
-    unsigned int    entry;                          // The directory entry of the last file found that matches the specified attributes. (Internal use only)
-    char            searchname[FILE_NAME_SIZE_8P3 + 2]; // The 8.3 format name specified when the user began the search. (Internal use only)
-    unsigned char   searchattr;                     // The attributes specified when the user began the search. (Internal use only)
-    unsigned long   cwdclus;                        // The directory that this search was performed in. (Internal use only)
-    unsigned char   initialized;                    // Check to determine if the structure was initialized by FindFirst (Internal use only)
+    uint16_t        entry;                          // The directory entry of the last file found that matches the specified attributes. (Internal use only)
+    uint8_t         searchname[FILE_NAME_SIZE_8P3 + 2]; // The 8.3 format name specified when the user began the search. (Internal use only)
+    uint8_t         searchattr;                     // The attributes specified when the user began the search. (Internal use only)
+    uint32_t        cwdclus;                        // The directory that this search was performed in. (Internal use only)
+    uint8_t         initialized;                    // Check to determine if the structure was initialized by FindFirst (Internal use only)
 } SearchRec;
 
 
@@ -345,7 +345,7 @@ typedef struct
     None
   *************************************************************************/
 
-int FSInit(void);
+uint8_t FSInit(void);
 
 
 /*********************************************************************
@@ -391,7 +391,7 @@ int FSInit(void);
     None.
   *********************************************************************/
 
-FSFILE * FSfopen(const char * fileName, const char *mode);
+FSFILE * FSfopen(const uint8_t * fileName, const char *mode);
 
 #ifdef SUPPORT_LFN
 /*********************************************************************
@@ -758,7 +758,7 @@ size_t FSfread(void *ptr, size_t size, size_t n, FSFILE *stream);
     None                                                               
   **********************************************************************/
 
-int FSfseek(FSFILE *stream, long offset, int whence);
+int FSfseek(FSFILE *stream, uint32_t offset, uint8_t whence);
 
 
 /*******************************************************************
@@ -782,7 +782,7 @@ int FSfseek(FSFILE *stream, long offset, int whence);
     None                                                            
   *******************************************************************/
 
-long FSftell(FSFILE *fo);
+uint32_t FSftell(FSFILE *fo);
 
 
 /****************************************************
@@ -924,7 +924,7 @@ int FSattrib (FSFILE * file, unsigned char attributes);
     None                                                        
   ***************************************************************/
 
-int FSrename (const char * fileName, FSFILE * fo);
+int FSrename (const uint8_t * fileName, FSFILE * fo);
 
 #ifdef SUPPORT_LFN
 /***************************************************************
@@ -980,7 +980,7 @@ int wFSrename (const unsigned short int * fileName, FSFILE * fo);
     None                                       
   **********************************************************************/
 
-int FSremove (const char * fileName);
+int FSremove (const uint8_t * fileName);
 
 #ifdef SUPPORT_LFN
 /*********************************************************************
@@ -1380,7 +1380,7 @@ int SetClockVars (unsigned int year, unsigned char month, unsigned char day, uns
     Call FindFirst or FindFirstpgm before calling FindNext
   ***********************************************************************************/
 
-int FindFirst (const char * fileName, unsigned int attr, SearchRec * rec);
+int FindFirst (const uint8_t * fileName, uint8_t attr, SearchRec * rec);
 
 #ifdef SUPPORT_LFN
 /***********************************************************************************

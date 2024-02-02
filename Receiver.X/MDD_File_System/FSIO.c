@@ -199,8 +199,8 @@ uint8_t gFATBuffer[MEDIA_SECTOR_SIZE];     // The global FAT sector buffer
 DISK gDiskData;         // Global structure containing device information.
 
 /* Global Variables to handle ASCII & UTF16 file operations */
-char *asciiFilename;
-unsigned short int fileNameLength;
+uint8_t *asciiFilename;
+uint16_t fileNameLength;
 #ifdef SUPPORT_LFN
 	unsigned short int *utf16Filename;
 	uint8_t	utfModeFileName = FALSE;
@@ -323,7 +323,7 @@ DIRENTRY LoadDirAttrib(FILEOBJ fo, uint16_t *fHandle);
 
 void FileObjectCopy(FILEOBJ foDest,FILEOBJ foSource);
 FILE_DIR_NAME_TYPE ValidateChars(uint8_t mode);
-uint8_t FormatFileName( const char* fileName, FILEOBJ fptr, uint8_t mode);
+uint8_t FormatFileName(const uint8_t* fileName, FILEOBJ fptr, uint8_t mode);
 CETYPE FILEfind( FILEOBJ foDest, FILEOBJ foCompareTo, uint8_t cmd, uint8_t mode);
 CETYPE FILEopen (FILEOBJ fo, uint16_t *fHandle, char type);
 #if defined(SUPPORT_LFN)
@@ -411,7 +411,7 @@ uint32_t GetFullClusterNumber(DIRENTRY entry);
     None
   *************************************************************************/
 
-int FSInit(void)
+uint8_t FSInit(void)
 {
     int fIndex;
 #ifndef FS_DYNAMIC_MEM
@@ -2895,7 +2895,7 @@ uint8_t Write_File_Entry( FILEOBJ fo, uint16_t * curEntry)
     ccls = fo->dirccls;
 
      // figure out the offset from the base sector
-    offset2  = (*curEntry / (dsk->sectorSize/32));
+    offset2  = (uint8_t)(*curEntry / (dsk->sectorSize/32));
 
     /* Settings based on FAT type */
     switch (dsk->type)
@@ -3065,10 +3065,10 @@ DIRENTRY Cache_File_Entry( FILEOBJ fo, uint16_t * curEntry, uint8_t ForceRead)
     cluster = fo->dirclus;
     ccls = fo->dirccls;
 
-	dirEntriesPerSector = dsk->sectorSize/32;
+	dirEntriesPerSector = (uint8_t)(dsk->sectorSize/32);
 
      // figure out the offset from the base sector
-    offset2  = (*curEntry / dirEntriesPerSector);
+    offset2  = (uint8_t)(*curEntry / dirEntriesPerSector);
 
     /* Settings based on FAT type */
     switch (dsk->type)
@@ -3107,7 +3107,7 @@ DIRENTRY Cache_File_Entry( FILEOBJ fo, uint16_t * curEntry, uint8_t ForceRead)
             {
                 // If ForceRead, read the number of sectors from 0
                 if (ForceRead)
-                    numofclus = ((uint16_t)(*curEntry) / (uint16_t)(((uint16_t)dirEntriesPerSector) * (uint16_t)dsk->SecPerClus));
+                    numofclus = (uint8_t)((uint16_t)(*curEntry) / (uint16_t)(((uint16_t)dirEntriesPerSector) * (uint16_t)dsk->SecPerClus));
                 // Otherwise just read the next sector
                 else
                     numofclus = 1;
@@ -3426,7 +3426,7 @@ CETYPE CreateFirstCluster(FILEOBJ fo)
         // Get the higher part of cluster and store it in directory entry.
        TempMsbCluster = (cluster & 0x0FFF0000);    // Since only 28 bits usedin FAT32. Mask the higher MSB nibble.
        TempMsbCluster = TempMsbCluster >> 16;      // Get the date into Lsb place.
-       dir->DIR_FstClusHI = TempMsbCluster;
+       dir->DIR_FstClusHI = (uint16_t)TempMsbCluster;
 #else // If FAT32 support not enabled
        TempMsbCluster = 0;                         // Just to avoid compiler warnigng.
        dir->DIR_FstClusHI = 0;
@@ -3610,7 +3610,7 @@ uint8_t PopulateEntries(FILEOBJ fo, uint16_t *fHandle, uint8_t mode)
         return CE_BADCACHEREAD;
 
     // copy the contents over
-    strncpy(dir->DIR_Name,fo->name,DIR_NAMECOMP);
+    strncpy((char *)(dir->DIR_Name), (const char *)(fo->name), DIR_NAMECOMP);
 
     // setup no attributes
     if (mode == DIRECTORY)
@@ -5138,7 +5138,7 @@ CETYPE FILEerase( FILEOBJ fo, uint16_t *fHandle, uint8_t EraseClusters)
 
 #ifdef ALLOW_WRITES
 
-int FSrename (const char * fileName, FSFILE * fo)
+int FSrename (const uint8_t * fileName, FSFILE * fo)
 {
     uint16_t fHandle;
 	FSFILE	tempFo1,tempFo2;
@@ -5386,7 +5386,7 @@ FSFILE * wFSfopen( const unsigned short int * fileName, const char *mode )
     None.
   *********************************************************************/
 
-FSFILE * FSfopen( const char * fileName, const char *mode )
+FSFILE * FSfopen( const uint8_t * fileName, const char *mode )
 {
     FILEOBJ    filePtr;
 #ifndef FS_DYNAMIC_MEM
@@ -5680,7 +5680,7 @@ FSFILE * FSfopen( const char * fileName, const char *mode )
     None
   *******************************************************************/
 
-long FSftell (FSFILE * fo)
+uint32_t FSftell (FSFILE * fo)
 {
     FSerrno = CE_GOOD;
     return (fo->seek);
@@ -5713,7 +5713,7 @@ long FSftell (FSFILE * fo)
     None                                       
   **********************************************************************/
 
-int FSremove (const char * fileName)
+int FSremove (const uint8_t * fileName)
 {
     FILEOBJ fo = &tempCWDobj;
 
@@ -6239,7 +6239,7 @@ uint8_t EraseCluster(DISK *disk, uint32_t cluster)
     if (gBufferZeroed == FALSE)
     {
         // clear out the memory first
-        memset(disk->buffer, 0x00, disk->sectorSize);
+        memset(disk->buffer, 0x00, (size_t)disk->sectorSize);
         gBufferZeroed = TRUE;
     }
 
@@ -6938,13 +6938,13 @@ size_t FSfread (void *ptr, size_t size, size_t n, FSFILE *stream)
   Remarks:
     None.
   ***************************************************************************/
-uint8_t FormatFileName( const char* fileName, FILEOBJ fptr, uint8_t mode)
+uint8_t FormatFileName(const uint8_t* fileName, FILEOBJ fptr, uint8_t mode)
 {
-	char *fN2;
+	uint8_t *fN2;
 	FILE_DIR_NAME_TYPE fileNameType;
-    int temp,count1,count2,count3,count4;
+    uint16_t temp,count1,count2,count3,count4;
     uint8_t supportLFN = FALSE;
-	char *localFileName = NULL;
+	uint8_t *localFileName = NULL;
 
 	// go with static allocation
 	#if defined(SUPPORT_LFN)
@@ -6952,7 +6952,7 @@ uint8_t FormatFileName( const char* fileName, FILEOBJ fptr, uint8_t mode)
 		uint8_t	AscciIndication = TRUE;
 		count1 = 256;
 	#else
-		unsigned short int	tempString[13];
+		uint8_t tempString[13];
 		count1 = 12;
 	#endif
 
@@ -6984,14 +6984,14 @@ uint8_t FormatFileName( const char* fileName, FILEOBJ fptr, uint8_t mode)
 	else
 	#endif
 	{
-		fileNameLength = strlen(fileName);
+		fileNameLength = strlen((const char *)fileName);
 
 		if ((fileNameLength > count1) || (*fileName == '.') || (*fileName == 0))
 		{
 			return FALSE;
 		}
 		
-		asciiFilename = (char *)tempString;
+		asciiFilename = tempString;
 		for (count1 = 0;count1 < fileNameLength; count1++)
 		{
 			asciiFilename[count1] = fileName[count1];
@@ -7766,12 +7766,12 @@ FILE_DIR_NAME_TYPE ValidateChars(uint8_t mode)
     None
   **********************************************************************/
 
-int FSfseek(FSFILE *stream, long offset, int whence)
+int FSfseek(FSFILE *stream, uint32_t offset, uint8_t whence)
 {
     uint32_t    numsector, temp;   // lba of first sector of first cluster
     DISK*   dsk;            // pointer to disk structure
     uint8_t   test;
-    long offset2 = offset;
+    uint32_t offset2 = offset;
 
     dsk = stream->dsk;
 
@@ -7824,14 +7824,14 @@ int FSfseek(FSFILE *stream, long offset, int whence)
 
         // figure out how many bytes off of the offset
         offset2 = offset2 - (numsector * dsk->sectorSize);
-        stream->pos = offset2;
+        stream->pos = (uint16_t)offset2;
 
         // figure out how many clusters
         temp = numsector / dsk->SecPerClus;
 
         // figure out the stranded sectors
         numsector = numsector - (dsk->SecPerClus * temp);
-        stream->sec = numsector;
+        stream->sec = (uint16_t)numsector;
 
         // if we are in the current cluster stay there
         if (temp > 0)
@@ -7866,7 +7866,7 @@ int FSfseek(FSFILE *stream, long offset, int whence)
                             FSerrno = CE_COULD_NOT_GET_CLUSTER;
                             return (-1);
                         }
-                        stream->pos = dsk->sectorSize;
+                        stream->pos = (uint16_t)dsk->sectorSize;
                         stream->sec = dsk->SecPerClus - 1;
 #ifdef ALLOW_WRITES
                     }
@@ -8419,8 +8419,8 @@ uint32_t WriteFAT (DISK *dsk, uint32_t ccls, uint32_t value, uint8_t forceWrite)
     {
         if (dsk->type == FAT16)
         {
-            RAMwrite (gFATBuffer, p, value);            //lsB
-            RAMwrite (gFATBuffer, p+1, ((value&0x0000ff00) >> 8));    // msB
+            RAMwrite (gFATBuffer, p, (uint8_t)value);            //lsB
+            RAMwrite (gFATBuffer, p+1, (uint8_t)((value&0x0000ff00) >> 8));    // msB
         }
         else if (dsk->type == FAT12)
         {
@@ -8428,7 +8428,7 @@ uint32_t WriteFAT (DISK *dsk, uint32_t ccls, uint32_t value, uint8_t forceWrite)
             c = RAMread (gFATBuffer, p);
             if (q)
             {
-                c = ((value & 0x0F) << 4) | ( c & 0x0F);
+                c = (uint8_t)(((value & 0x0F) << 4) | ( c & 0x0F));
             }
             else
             {
@@ -8463,7 +8463,7 @@ uint32_t WriteFAT (DISK *dsk, uint32_t ccls, uint32_t value, uint8_t forceWrite)
             c = RAMread (gFATBuffer, p);
             if (q)
             {
-                c = (value >> 4);
+                c = (uint8_t)(value >> 4);
             }
             else
             {
@@ -12164,7 +12164,7 @@ int eraseDir (char * path)
     Call FindFirst or FindFirstpgm before calling FindNext
   ***********************************************************************************/
 
-int FindFirst (const char * fileName, unsigned int attr, SearchRec * rec)
+int FindFirst (const uint8_t * fileName, uint8_t attr, SearchRec * rec)
 {
     FSFILE f;
     FILEOBJ fo = &f;

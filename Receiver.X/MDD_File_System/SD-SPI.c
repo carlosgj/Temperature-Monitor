@@ -2280,12 +2280,12 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
 		c_size = c_size >> 6;	//Shift value down, so the 12-bit C_SIZE is properly right justified in the uint32_t.
 		
 		//Extract the C_SIZE_MULT field from the response.  It is a 3-bit number in bit position 49:47.
-		c_size_mult = ((uint16_t)((CSDResponse[9] & 0x03) << 1)) | ((uint16_t)((CSDResponse[10] & 0x80) >> 7));
+		c_size_mult = (uint8_t)( ((uint16_t)((CSDResponse[9] & 0x03) << 1)) | ((uint16_t)((CSDResponse[10] & 0x80) >> 7)) );
 
         //Extract the BLOCK_LEN field from the response. It is a 4-bit number in bit position 83:80.
         block_len = CSDResponse[5] & 0x0F;
 
-        block_len = 1 << (block_len - 9); //-9 because we report the size in sectors of 512 bytes each
+        block_len = (uint8_t)(1 << (block_len - 9)); //-9 because we report the size in sectors of 512 bytes each
 		
 		//Calculate the MDD_SDSPI_finalLBA (see SD card physical layer simplified spec 2.0, section 5.3.2).
 		//In USB mass storage applications, we will need this information to 

@@ -169,14 +169,14 @@ unsigned char init(void) {
     
     printf("Opening file...\n");
     FSFILE *fob = FSfopen("test", "w+");
-    printf("File opened; pointer=%u.\n", (uint16_t)fob);
+    printf("File opened; pointer=%X.\n", (uint16_t)fob);
     printf("Error: %d\n", FSerror());
     printf("Writing to file...\n");
-    initErrorCode = FSfwrite("Hello!", 1, 6, fob);
+    initErrorCode = (uint8_t)FSfwrite("Hello!", (size_t)1, (size_t)6, fob);
     printf("Write result: %d\n", initErrorCode);
     
-    initErrorCode = FSfclose(fob);
-    printf("Close result: %d\n", initErrorCode);
+    int16_t closeResult = FSfclose(fob);
+    printf("Close result: %d\n", closeResult);
     
     printf("FAT demo done.\n");
     
