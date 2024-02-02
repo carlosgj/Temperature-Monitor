@@ -19,8 +19,8 @@
 
 unsigned char allRegs[7];
 
-void writeRTCReg(unsigned char address, unsigned char data);
-unsigned char readRTCReg(unsigned char address);
+void RTC_writeReg(uint8_t address, uint8_t data);
+uint8_t RTC_readReg(uint8_t address);
 void getTime(void);
 void setTime(void);
 void readAll(void);

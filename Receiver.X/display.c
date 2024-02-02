@@ -132,7 +132,7 @@ void drawUtilScreen(void) {
     RA8875_textWrite(uintStr, 4);
     PRINT("\n");
     PRINT("RTC control register: 0x");
-    itoh8(readRTCReg(REG_CONTROL), uintStr);
+    itoh8(RTC_readReg(REG_CONTROL), uintStr);
     RA8875_textWrite(uintStr, 2);
     PRINT("\n");
     

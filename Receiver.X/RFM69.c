@@ -156,9 +156,9 @@ void RFM69_setFrequency(unsigned long freqHz) {
         RFM69_setMode(RF69_MODE_RX);
     }
     freqHz /= RF69_FSTEP; // divide down by FSTEP to get FRF
-    RFM69_writeReg(REG_FRFMSB, freqHz >> 16);
-    RFM69_writeReg(REG_FRFMID, freqHz >> 8);
-    RFM69_writeReg(REG_FRFLSB, freqHz);
+    RFM69_writeReg(REG_FRFMSB, (uint8_t)(freqHz >> 16));
+    RFM69_writeReg(REG_FRFMID, (uint8_t)(freqHz >> 8));
+    RFM69_writeReg(REG_FRFLSB, (uint8_t)freqHz);
     if (oldMode == RF69_MODE_RX) {
         RFM69_setMode(RF69_MODE_SYNTH);
     }
