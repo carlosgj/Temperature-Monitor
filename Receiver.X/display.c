@@ -511,31 +511,31 @@ void setDisplayMode(unsigned char newMode) {
 void setGraphMode(unsigned char newMode) {
     switch (newMode) {
         case GRAPH_MODE_DAY:
-            clearPlotXLabels();
-            drawPlotDayXLabels();
-            collectDayData();
-            plotTemp(240);
+//            clearPlotXLabels();
+//            drawPlotDayXLabels();
+//            collectDayData();
+//            plotTemp(240);
             currentGraphMode = newMode;
             break;
         case GRAPH_MODE_WEEK:
-            clearPlotXLabels();
-            drawPlotWeekXLabels();
-            collectWeekData();
-            plotTemp(336);
+//            clearPlotXLabels();
+//            drawPlotWeekXLabels();
+//            collectWeekData();
+//            plotTemp(336);
             currentGraphMode = newMode;
             break;
         case GRAPH_MODE_MONTH:
-            clearPlotXLabels();
-            drawPlotMonthXLabels();
-            collectMonthData();
-            plotTemp(360);
+//            clearPlotXLabels();
+//            drawPlotMonthXLabels();
+//            collectMonthData();
+//            plotTemp(360);
             currentGraphMode = newMode;
             break;
         case GRAPH_MODE_YEAR:
-            clearPlotXLabels();
-            drawPlotYearXLabels();
-            collectYearData();
-            plotTemp(365);
+//            clearPlotXLabels();
+//            drawPlotYearXLabels();
+//            collectYearData();
+//            plotTemp(365);
             currentGraphMode = newMode;
             break;
         default:

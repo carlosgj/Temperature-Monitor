@@ -1639,14 +1639,15 @@ uint8_t LoadMBR(DISK *dsk)
         FSerrno = CE_BAD_SECTOR_READ;
     }
     else{
-        printf("FAT: Read sector:");
-        for(i=0; i<512; i++){
-            if((i & 0b11111) == 0){
-                printf("\n");
-            }
-            printf(" %02X", dsk->buffer[i]);
-        }
-        printf("\n");
+//        printf("FAT: Read sector:");
+//        for(i=0; i<512; i++){
+//            if((i & 0b11111) == 0){
+//                printf("\n");
+//            }
+//            printf(" %02X", dsk->buffer[i]);
+//        }
+//        printf("\n");
+        
         // Check if the card has no MBR
         BSec = (BootSec) dsk->buffer;
 
@@ -1778,14 +1779,15 @@ uint8_t LoadBootSector(DISK *dsk){
     }
     
     else{
-        printf("FAT: Read sector:");
-        for(i=0; i<512; i++){
-            if((i & 0b11111) == 0){
-                printf("\n");
-            }
-            printf(" %02X", dsk->buffer[i]);
-        }
-        printf("\n");
+        
+//        printf("FAT: Read sector:");
+//        for(i=0; i<512; i++){
+//            if((i & 0b11111) == 0){
+//                printf("\n");
+//            }
+//            printf(" %02X", dsk->buffer[i]);
+//        }
+//        printf("\n");
         
         BSec = (BootSec)dsk->buffer;
 

@@ -223,40 +223,40 @@ uint8_t init(void) {
 }
 
 void run(void) {
-    uint16_t minorCycleCounter = 0;
+    uint8_t minorCycleCounter = 0;
     uint16_t minorCycleStartTime, minorCycleEndTime, minorCycleDuration;
-    uint16_t oldMinuteOfDay = minuteOfDay;
-    unsigned char oldDay = currentDay;
 
     while (TRUE) {
         getMillis(&minorCycleStartTime);
 
         
-        //Do tasks
+        //-------- Actual tasks --------------
         if (messageInProgressFlag) {
             __delay_ms(20);
             processMessage();
             currentTemperatureByte = formatTemperatureToChar(tempReadingRaw);
             asm("NOP");
         }
-        //getTime();
-        //updateButtons();
-        handleButtonActions();
-        if (safeMode) {
-            //drawSafeMode();
+        
+        if(unhandledIntFlag){
+            printf("Unhandled interrupt: %d\n", lastUnhandledInt);
+            unhandledIntFlag = FALSE;
         }
+        
+        //getTime();
         UI_periodic(minorCycleCounter);
 
+        //----------------------------------------
         
         minorCycleCounter++;
         if (minorCycleCounter == MAJOR_CYCLE_LENGTH) {
             minorCycleCounter = 0;
-            printf("Major cycle\n");
+            //printf("Major cycle\n");
         }
         
         getMillis(&minorCycleEndTime);
         minorCycleDuration = minorCycleEndTime - minorCycleStartTime;
-        printf("%u\n", minorCycleDuration);
+        //printf("%u\n", minorCycleDuration);
         if (minorCycleDuration > MINOR_CYCLE_TIME_LIMIT_MS) {
             printf("Warning: Cycle slip; minor cycle took %u ms.\n", minorCycleDuration);
         } else {
@@ -271,9 +271,9 @@ void run(void) {
     //ext_mem_write((currentEEPROMPage<<8)+2+sampleIndex , currentTemperatureByte);
     //    }
     //}
-    if (oldDay != currentDay) {
+    //if (oldDay != currentDay) {
         //incrementEEPROMPageIndex();
-    }
+    //}
 
     //pros_seconds.all = 0;
     //pros_minutes.all = 0;
@@ -289,7 +289,6 @@ void run(void) {
     //foo = readRTCReg(REG_CONTROL);
     //writeRTCReg(REG_CONTROL, 0b00000100); //Enable oscillator
     //foo = readRTCReg(REG_CONTROL);
-    __delay_ms(1);
 }
 
 void getResetCause(void) {
@@ -353,7 +352,8 @@ void getResetCause(void) {
 }
 
 void __interrupt(irq(default), high_priority) DefaultISR(unsigned char id) {
-    status.unhandledIntCount++;
-    status.lastUnhandledInt = id;
+    unhandledIntCount++;
+    unhandledIntFlag = TRUE;
+    lastUnhandledInt = id;
     //printf("Unhandled interrupt!\n");
 }

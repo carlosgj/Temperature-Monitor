@@ -28,10 +28,15 @@ uint8_t UI_init(void) {
 void UI_periodic(uint8_t minorCycle) {
     drawTemp();
     drawTime();
+    updateButtons();
+    handleButtonActions();
+    if (safeMode) {
+        //drawSafeMode();
+    }
     if (currentDisplayMode == DISP_MODE_HOME) {
         switch (currentGraphMode) {
             case GRAPH_MODE_DAY:
-                switch(minorCycle){
+                switch (minorCycle) {
                     case 0:
                         clearPlotXLabels();
                         break;
@@ -49,7 +54,7 @@ void UI_periodic(uint8_t minorCycle) {
                 }
                 break;
             case GRAPH_MODE_WEEK:
-                switch(minorCycle){
+                switch (minorCycle) {
                     case 0:
                         clearPlotXLabels();
                         break;
@@ -98,149 +103,149 @@ void updateButtons(void) {
 }
 
 void handleButtonActions(void) {
-    //    //If any button is pressed when asleep, wake up
-    //    if (buttonPressed.all != 0 && isSleep) {
-    //        setSleep(FALSE);
-    //        __delay_ms(250);
-    //        return;
-    //    }
-    //    if (buttonPressed.B1) {
-    //        switch (currentDisplayMode) {
-    //            case DISP_MODE_HOME:
-    //                setGraphMode(GRAPH_MODE_DAY);
-    //                break;
-    //            case DISP_MODE_UTIL:
-    //                //Switch to home
-    //                setDisplayMode(DISP_MODE_HOME);
-    //                break;
-    //            case DISP_MODE_SETTIME:
-    //                //Switch to home
-    //                setDisplayMode(DISP_MODE_HOME);
-    //                break;
-    //        }
-    //        return;
-    //    }
-    //
-    //    if (buttonPressed.B2) {
-    //        switch (currentDisplayMode) {
-    //            case DISP_MODE_HOME:
-    //                //Switch to past-week plot
-    //                setGraphMode(GRAPH_MODE_WEEK);
-    //                break;
-    //            case DISP_MODE_UTIL:
-    //                //Switch to time-set screen
-    //                setDisplayMode(DISP_MODE_SETTIME);
-    //                getTime();
-    //                pros_seconds.all = seconds_reg.all;
-    //                pros_minutes.all = minutes_reg.all;
-    //                pros_hours.all = hours_reg.all;
-    //                pros_date.all = date_reg.all;
-    //                pros_month.all = month_reg.all;
-    //                pros_years.all = years_reg.all;
-    //                activeTimeChar = ACTIVE_TIME_10YR;
-    //                drawProspectiveTime();
-    //                break;
-    //            case DISP_MODE_SETTIME:
-    //                setTime();
-    //                setDisplayMode(DISP_MODE_HOME);
-    //                break;
-    //        }
-    //        return;
-    //    }
-    //
-    //    if (buttonPressed.B3) {
-    //        switch (currentDisplayMode) {
-    //            case DISP_MODE_HOME:
-    //                //Switch to past-month plot
-    //                setGraphMode(GRAPH_MODE_MONTH);
-    //                break;
-    //            case DISP_MODE_UTIL:
-    //                //Force start RTC
-    //                RTCOscRestart();
-    //                break;
-    //            case DISP_MODE_SETTIME:
-    //                //Move cursor left
-    //                if (activeTimeChar == 0) {
-    //                    activeTimeChar = ACTIVE_TIME_SECOND;
-    //                } else {
-    //                    activeTimeChar--;
-    //                }
-    //                drawProspectiveTime();
-    //                break;
-    //            case DISP_MODE_VERIFY_RESET:
-    //                //"No" selected
-    //                setDisplayMode(DISP_MODE_HOME);
-    //                break;
-    //        }
-    //        return;
-    //    }
-    //
-    //    if (buttonPressed.B4) {
-    //        switch (currentDisplayMode) {
-    //            case DISP_MODE_HOME:
-    //                //Switch to past-year plot
-    //                setGraphMode(GRAPH_MODE_YEAR);
-    //                break;
-    //            case DISP_MODE_UTIL:
-    //                //Reset
-    //                RESET();
-    //                break;
-    //            case DISP_MODE_SETTIME:
-    //                //Move cursor right
-    //                if (activeTimeChar == ACTIVE_TIME_SECOND) {
-    //                    activeTimeChar = 0;
-    //                } else {
-    //                    activeTimeChar++;
-    //                }
-    //                drawProspectiveTime();
-    //                break;
-    //            case DISP_MODE_VERIFY_RESET:
-    //                //"Yes" selected
-    //                safeMode = FALSE;
-    //                //resetEEPROMPageIndex();
-    //                RESET();
-    //                break;
-    //        }
-    //        return;
-    //    }
-    //
-    //    if (buttonPressed.B5) {
-    //        switch (currentDisplayMode) {
-    //            case DISP_MODE_HOME:
-    //                //Go to util screen
-    //                setDisplayMode(DISP_MODE_UTIL);
-    //                break;
-    //            case DISP_MODE_UTIL:
-    //                break;
-    //            case DISP_MODE_SETTIME:
-    //                //Increment
-    //                incrementActiveChar();
-    //                drawProspectiveTime();
-    //                break;
-    //        }
-    //        return;
-    //    }
-    //
-    //    if (buttonPressed.B6) {
-    //        switch (currentDisplayMode) {
-    //            case DISP_MODE_HOME:
-    //                //Turn off screen
-    //                setSleep(TRUE);
-    //                break;
-    //            case DISP_MODE_UTIL:
-    //                setDisplayMode(DISP_MODE_VERIFY_RESET);
-    //                break;
-    //            case DISP_MODE_SETTIME:
-    //                //Decrement
-    //                decrementActiveChar();
-    //                drawProspectiveTime();
-    //                break;
-    //        }
-    //        return;
-    //    }
-    //
-    //    //If a button was pressed, do the action, then delay to ignore bounces
-    //    if (buttonPressed.all != 0) {
-    //        __delay_ms(300);
-    //    }
+    //If any button is pressed when asleep, wake up
+    if (buttonPressed.all != 0 && isSleep) {
+        setSleep(FALSE);
+        __delay_ms(250);
+        return;
+    }
+    if (buttonPressed.B1) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                setGraphMode(GRAPH_MODE_DAY);
+                break;
+            case DISP_MODE_UTIL:
+                //Switch to home
+                setDisplayMode(DISP_MODE_HOME);
+                break;
+            case DISP_MODE_SETTIME:
+                //Switch to home
+                setDisplayMode(DISP_MODE_HOME);
+                break;
+        }
+        return;
+    }
+
+    if (buttonPressed.B2) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                //Switch to past-week plot
+                setGraphMode(GRAPH_MODE_WEEK);
+                break;
+            case DISP_MODE_UTIL:
+                //Switch to time-set screen
+                setDisplayMode(DISP_MODE_SETTIME);
+                //getTime();
+                pros_seconds.all = seconds_reg.all;
+                pros_minutes.all = minutes_reg.all;
+                pros_hours.all = hours_reg.all;
+                pros_date.all = date_reg.all;
+                pros_month.all = month_reg.all;
+                pros_years.all = years_reg.all;
+                activeTimeChar = ACTIVE_TIME_10YR;
+                drawProspectiveTime();
+                break;
+            case DISP_MODE_SETTIME:
+                //setTime();
+                setDisplayMode(DISP_MODE_HOME);
+                break;
+        }
+        return;
+    }
+
+    if (buttonPressed.B3) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                //Switch to past-month plot
+                setGraphMode(GRAPH_MODE_MONTH);
+                break;
+            case DISP_MODE_UTIL:
+                //Force start RTC
+                //RTCOscRestart();
+                break;
+            case DISP_MODE_SETTIME:
+                //Move cursor left
+                if (activeTimeChar == 0) {
+                    activeTimeChar = ACTIVE_TIME_SECOND;
+                } else {
+                    activeTimeChar--;
+                }
+                drawProspectiveTime();
+                break;
+            case DISP_MODE_VERIFY_RESET:
+                //"No" selected
+                setDisplayMode(DISP_MODE_HOME);
+                break;
+        }
+        return;
+    }
+
+    if (buttonPressed.B4) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                //Switch to past-year plot
+                setGraphMode(GRAPH_MODE_YEAR);
+                break;
+            case DISP_MODE_UTIL:
+                //Reset
+                RESET();
+                break;
+            case DISP_MODE_SETTIME:
+                //Move cursor right
+                if (activeTimeChar == ACTIVE_TIME_SECOND) {
+                    activeTimeChar = 0;
+                } else {
+                    activeTimeChar++;
+                }
+                drawProspectiveTime();
+                break;
+            case DISP_MODE_VERIFY_RESET:
+                //"Yes" selected
+                safeMode = FALSE;
+                //resetEEPROMPageIndex();
+                RESET();
+                break;
+        }
+        return;
+    }
+
+    if (buttonPressed.B5) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                //Go to util screen
+                setDisplayMode(DISP_MODE_UTIL);
+                break;
+            case DISP_MODE_UTIL:
+                break;
+            case DISP_MODE_SETTIME:
+                //Increment
+                incrementActiveChar();
+                drawProspectiveTime();
+                break;
+        }
+        return;
+    }
+
+    if (buttonPressed.B6) {
+        switch (currentDisplayMode) {
+            case DISP_MODE_HOME:
+                //Turn off screen
+                setSleep(TRUE);
+                break;
+            case DISP_MODE_UTIL:
+                setDisplayMode(DISP_MODE_VERIFY_RESET);
+                break;
+            case DISP_MODE_SETTIME:
+                //Decrement
+                decrementActiveChar();
+                drawProspectiveTime();
+                break;
+        }
+        return;
+    }
+
+    //If a button was pressed, do the action, then delay to ignore bounces
+    if (buttonPressed.all != 0) {
+        __delay_ms(300);
+    }
 }
