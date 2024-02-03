@@ -15,7 +15,7 @@
 #include "UI.h"
 #include "MDD_File_System/SD-SPI.h"
 #include "MDD_File_System/FSIO.h"
-#include "time.h"
+#include "timers.h"
 
 #define MINOR_CYCLE_TIME_LIMIT_MS   100
 #define MAJOR_CYCLE_LENGTH  10

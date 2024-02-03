@@ -2,7 +2,6 @@
 #define	SPI_H
 
 #include "common.h"
-#include "pindef.h"
 
 void SPIInit(void); 
 void SPI2_Open_SDSlow(void);

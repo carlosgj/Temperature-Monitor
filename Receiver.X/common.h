@@ -7,7 +7,7 @@
 #include "FIFO.h"
 #include "gitVersion.h"
 #include "pindef.h"
-#include "time.h"
+#include "timers.h"
 
 #pragma warning disable 520
 
@@ -24,17 +24,10 @@
 #define INTEN   INTCON0bits.GIE = TRUE
 #define INTDIS  INTCON0bits.GIE = FALSE
 
-#define STATUS_LEN (11)
-union status_t {
-    unsigned char all[STATUS_LEN];
-    struct{
-        uint8_t unhandledIntCount;
-        uint8_t lastUnhandledInt;
-        uint8_t loopOverruns;
-        uint16_t seconds;
-        uint8_t resetCause;
-    };
-} status;
+uint8_t unhandledIntCount;
+uint8_t lastUnhandledInt;
+uint8_t unhandledIntFlag = FALSE;
+//uint8_t loopOverruns;
 
 enum ResetCause {
     RS_POR,

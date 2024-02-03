@@ -2,6 +2,7 @@
 #define	DATETIME_H
 
 #include <xc.h> 
+#include <time.h>
 #include "common.h"
 
 union bcd {
@@ -22,10 +23,13 @@ union hour_t{
     };
 };
 
-struct date_t{
+struct datetime_t{
     uint16_t year;
     uint8_t month;
     uint8_t dom;
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
 };
 
 union bcd seconds_reg;
@@ -72,8 +76,8 @@ uint8_t is_leap(uint16_t year);
 uint32_t days_before_year(uint16_t year);
 uint8_t days_in_month(uint16_t year, uint8_t month);
 uint16_t days_before_month(uint16_t year, uint8_t month);
-uint32_t ymd2ord(struct date_t *ymd);
-void ord2ymd(uint32_t n, struct date_t *ymd);
+uint32_t ymd2ord(struct datetime_t *ymd);
+void ord2ymd(uint32_t n, struct datetime_t *ymd);
 
 #endif	/* XC_HEADER_TEMPLATE_H */
 
