@@ -3,6 +3,7 @@
 
 #include <xc.h> 
 #include <time.h>
+#include <string.h>
 #include "common.h"
 
 union bcd {
@@ -55,7 +56,7 @@ const uint8_t DAYS_IN_MONTH[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 
 const uint16_t DAYS_BEFORE_MONTH[] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
 
 // Month and day names.  For localized versions, see the calendar module.
-const char* const MONTHNAMES[] = {"NUL", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+const char* const MONTHNAMES[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 const char* const DAYNAMES[] = {"NUL", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
 
 //DI4Y = 4 * 365 + 1;
@@ -72,12 +73,8 @@ const char* const DAYNAMES[] = {"NUL", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
 
 void datetime_tests(void);
 
-uint8_t is_leap(uint16_t year);
-uint32_t days_before_year(uint16_t year);
-uint8_t days_in_month(uint16_t year, uint8_t month);
-uint16_t days_before_month(uint16_t year, uint8_t month);
-uint32_t ymd2ord(struct datetime_t *ymd);
-void ord2ymd(uint32_t n, struct datetime_t *ymd);
+void unix2Datetime(uint32_t *unix, struct datetime_t *dt);
+void datetime2Unix(struct datetime_t *dt, uint32_t *unix);
 
 #endif	/* XC_HEADER_TEMPLATE_H */
 
