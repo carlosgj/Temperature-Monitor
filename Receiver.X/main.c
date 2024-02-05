@@ -46,6 +46,10 @@ uint8_t init(void) {
     printf("\n");
 
     timerInit();
+    
+    printf("Startup delay...\n");
+    __delay_ms(500);
+    __delay_ms(500);
 
     printf("Initializing SPI...\n");
     SPIInit();
@@ -202,7 +206,7 @@ uint8_t init(void) {
 //    printf("FAT demo done.\n\n");
 
     printf("Initializing RFM69...\n");
-    initErrorCode = RFM69_initialize(0);
+    initErrorCode = RFM69_initialize(0, 0);
     if (initErrorCode != 0) {
         printf("RFM69 init error %d!\n", initErrorCode);
         if (initError == 0) {
@@ -238,9 +242,18 @@ void run(void) {
             asm("NOP");
         }
         
+        if(RFM69_receiveDone()){
+            printf("Got RF data???\n");
+        }
+        
         if(unhandledIntFlag){
             printf("Unhandled interrupt: %d\n", lastUnhandledInt);
             unhandledIntFlag = FALSE;
+        }
+        
+        if(unhandledIOCIntFlag){
+            printf("Unhandled IOC interrupt!\n");
+            unhandledIOCIntFlag = FALSE;
         }
         
         //getTime();
@@ -289,6 +302,17 @@ void run(void) {
     //foo = readRTCReg(REG_CONTROL);
     //writeRTCReg(REG_CONTROL, 0b00000100); //Enable oscillator
     //foo = readRTCReg(REG_CONTROL);
+}
+
+//Put the IOC ISR here, since multiple modules need it
+void __interrupt(irq(IOC), low_priority) IOCISR(void) {
+    if(IOCCFbits.IOCCF7){
+        //RF DIO0
+        RF_haveData = TRUE;
+        IOCCFbits.IOCCF7 = FALSE;
+        return;
+    }
+    unhandledIOCIntFlag = TRUE;
 }
 
 void getResetCause(void) {

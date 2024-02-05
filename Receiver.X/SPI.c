@@ -89,14 +89,14 @@ void SPI2_Open_RFM69(void){
     SPI2CON0bits.BMODE = TRUE;
     SPI2CON0bits.LSBF = FALSE;
     SPI2CON1bits.SMP = 0;
-    SPI2CON1bits.CKE = 1;
+    SPI2CON1bits.CKE = 0;
     SPI2CON1bits.CKP = 0;
     SPI2CON2bits.RXR = TRUE;
     SPI2CON2bits.TXR = TRUE;
     //SSP2CON1bits.SSPM = 0b0010; //Fosc/64
     //SSP2CON3bits.BOEN = TRUE;
     SPI2CLK = 0; //Fosc
-    SPI2BAUD = 100;
+    SPI2BAUD = 250;
     SPI2CON0bits.EN = TRUE; //Enable
 }
 

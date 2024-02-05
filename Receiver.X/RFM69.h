@@ -29,6 +29,8 @@
 #include "common.h"
 #include "SPI.h"
 
+//#define DEBUG_RF
+
 #define RF69_MAX_DATA_LEN       61 // to take advantage of the built in AES/CRC we want to limit the frame size to the internal FIFO size (66 bytes - 3 bytes overhead - 2 bytes crc)
 #define CSMA_LIMIT              -90 // upper RX signal sensitivity threshold in dBm for carrier sense access
 #define RF69_MODE_SLEEP         0 // XTAL OFF
@@ -70,7 +72,7 @@ static volatile uint8_t RFM69_mode = RF69_MODE_STANDBY;
 
 //RFM69(uint8_t slaveSelectPin = RF69_SPI_CS, uint8_t interruptPin = RF69_IRQ_PIN, uint8_t isRFM69HW = false);
 
-uint8_t RFM69_initialize(uint8_t ID);
+uint8_t RFM69_initialize(uint8_t ID, uint8_t networkID);
 void RFM69_setMode(uint8_t newMode);
 void RFM69_setAddress(uint8_t addr);
 void RFM69_setNetwork(uint8_t networkID);
@@ -96,16 +98,15 @@ void interruptHook(uint8_t CTLbyte);
 void RFM69_writeReg(uint8_t address, uint8_t data);
 uint8_t RFM69_readReg(uint8_t address);
 
-static volatile uint8_t _haveData;
+static volatile uint8_t RF_haveData;
 
-uint8_t _slaveSelectPin;
-uint8_t _interruptPin;
-uint8_t _interruptNum;
-uint8_t _address;
-uint8_t _promiscuousMode;
-uint8_t _powerLevel;
-uint8_t _isRFM69HW;
-uint8_t RFM69_promiscuousMode;
+//uint8_t _slaveSelectPin;
+//uint8_t _interruptPin;
+//uint8_t _interruptNum;
+uint8_t RF_address;
+uint8_t RF_promiscuousMode;
+uint8_t RF_powerLevel;
+uint8_t RF_isRFM69HW = TRUE;
 #if defined (SPCR) && defined (SPSR)
 uint8_t _SPCR;
 uint8_t _SPSR;

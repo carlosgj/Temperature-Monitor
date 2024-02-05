@@ -46,10 +46,6 @@ enum ResetCause {
 
 enum ResetCause resetCause = RS_INVALID;
 
-
-unsigned int ms_count=0;
-unsigned int sec_count =0;
-
 unsigned char currentYear = 0xff;
 unsigned char currentMonth = 0xff;
 unsigned char currentDay = 0xff;

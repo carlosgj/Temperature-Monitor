@@ -20,6 +20,8 @@
 #define MINOR_CYCLE_TIME_LIMIT_MS   100
 #define MAJOR_CYCLE_LENGTH  10
 
+uint8_t unhandledIOCIntFlag = FALSE;
+
 unsigned char init(void);
 void run(void);
 void updateButtons(void);
