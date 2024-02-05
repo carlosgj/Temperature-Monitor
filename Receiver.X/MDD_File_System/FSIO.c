@@ -97,10 +97,6 @@
 #include "ctype.h"
 #include "./FSDefs.h"
 
-#ifdef ALLOW_FSFPRINTF
-#include "stdarg.h"
-#endif
-
 #ifdef FS_DYNAMIC_MEM
    #ifdef __18CXX
       #include "salloc.h"
@@ -271,35 +267,6 @@ typedef enum
 
 typedef FSFILE   * FILEOBJ;         // Pointer to an FSFILE object
 
-#ifdef ALLOW_FSFPRINTF
-
-#define _FLAG_MINUS 0x1             // FSfprintf minus flag indicator
-#define _FLAG_PLUS  0x2             // FSfprintf plus flag indicator
-#define _FLAG_SPACE 0x4             // FSfprintf space flag indicator
-#define _FLAG_OCTO  0x8             // FSfprintf octothorpe (hash mark) flag indicator
-#define _FLAG_ZERO  0x10            // FSfprintf zero flag indicator
-#define _FLAG_SIGNED 0x80           // FSfprintf signed flag indicator
-
-#ifdef __18CXX
-    #define _FMT_UNSPECIFIED 0      // FSfprintf unspecified argument size flag
-    #define _FMT_LONG 1             // FSfprintf 32-bit argument size flag
-    #define _FMT_SHRTLONG 2         // FSfprintf 24-bit argument size flag
-    #define _FMT_uint8_t   3           // FSfprintf 8-bit argument size flag
-#else
-    #define _FMT_UNSPECIFIED 0      // FSfprintf unspecified argument size flag
-    #define _FMT_LONGLONG 1         // FSfprintf 64-bit argument size flag
-    #define _FMT_LONG 2             // FSfprintf 32-bit argument size flag
-    #define _FMT_uint8_t 3             // FSfprintf 8-bit argument size flag
-#endif
-
-#ifdef __18CXX
-    static const rom char s_digits[] = "0123456789abcdef";      // FSfprintf table of conversion digits
-#else
-    static const char s_digits[] = "0123456789abcdef";          // FSfprintf table of conversion digits
-#endif
-
-#endif
-
 /************************************************************************************/
 /*                               Prototypes                                         */
 /************************************************************************************/
@@ -370,16 +337,6 @@ int chdirhelper (uint8_t mode, char * ramptr, const rom char * romptr);
 #endif
 #endif
 
-#ifdef ALLOW_FSFPRINTF
-    #ifdef __18CXX
-        int FSvfprintf (auto FSFILE *handle, auto const rom char *formatString, auto va_list ap);
-    #else
-        int FSvfprintf (FSFILE *handle, const char *formatString, va_list ap);
-    #endif
-    int FSputc (char c, FSFILE * file);
-    unsigned char str_put_n_chars (FSFILE * handle, unsigned char n, char c);
-#endif
-
 uint8_t DISKmount( DISK *dsk);
 uint8_t LoadMBR(DISK *dsk);
 uint8_t LoadBootSector(DISK *dsk);
@@ -428,7 +385,7 @@ uint8_t FSInit(void){
     gLastDataSectorRead = 0xFFFFFFFF;  
 
     //MDD_InitIO();
-    printf("FAT: Attempting mount\n");
+    printf("\tFAT: Attempting mount\n");
     uint8_t error = DISKmount(&gDiskData);
     if (error == CE_GOOD){
     // Initialize the current working directory to the root
@@ -458,7 +415,7 @@ uint8_t FSInit(void){
         FSerrno = 0;
     }
     else{
-        printf("FAT: Mount error: %d\n", error);
+        printf("\tFAT: Mount error: %d\n", error);
     }
     SPI2_Close();
     return error;
@@ -1556,19 +1513,19 @@ uint8_t DISKmount( DISK *dsk)
     // Initialize the device
     mediaInformation = MDD_MediaInitialize();
     if (mediaInformation->errorCode != MEDIA_NO_ERROR){
-        printf("FAT: Media initialize error!\n");
+        printf("\tFAT: Media initialize error!\n");
         error = CE_INIT_ERROR;
         FSerrno = CE_INIT_ERROR;
     }
     else{
-        printf("FAT: Media initialized successfully.\n");
+        printf("\tFAT: Media initialized successfully.\n");
         // If the media initialization routine determined the sector size,
         // check it and make sure we can support it.
         if (mediaInformation->validityFlags.bits.sectorSize){
-            printf("FAT: Detected sector size: %u\n", mediaInformation->sectorSize);
+            printf("\tFAT: Detected sector size: %u\n", mediaInformation->sectorSize);
 			dsk->sectorSize = mediaInformation->sectorSize;
             if (mediaInformation->sectorSize > MEDIA_SECTOR_SIZE){
-                printf("FAT: Unsupported sector size!\n");
+                printf("\tFAT: Unsupported sector size!\n");
                 error = CE_UNSUPPORTED_SECTOR_SIZE;
                 FSerrno = CE_UNSUPPORTED_SECTOR_SIZE;
                 return error;
@@ -1578,11 +1535,11 @@ uint8_t DISKmount( DISK *dsk)
         // Load the Master Boot Record (partition)
         error = LoadMBR(dsk);
         if (error == CE_GOOD){
-            printf("FAT: Loaded MBR.\n");
+            printf("\tFAT: Loaded MBR.\n");
             // Now the boot sector
             error = LoadBootSector(dsk);
             if (error == CE_GOOD){
-                printf("FAT: Loaded boot sector.\n");
+                printf("\tFAT: Loaded boot sector.\n");
                 dsk->mount = TRUE; // Mark that the DISK mounted successfully
             }
         }
@@ -1631,10 +1588,10 @@ uint8_t LoadMBR(DISK *dsk)
     BootSec BSec;
     uint16_t i;
 
-    printf("FAT: Loading MBR\n");
+    printf("\tFAT: Loading MBR\n");
     // Get the partition table from the MBR
     if ( MDD_SectorRead( FO_MBR, dsk->buffer) != TRUE){
-        printf("FAT: Sector read failed!\n");
+        printf("\tFAT: Sector read failed!\n");
         error = CE_BAD_SECTOR_READ;
         FSerrno = CE_BAD_SECTOR_READ;
     }
@@ -1766,7 +1723,7 @@ uint8_t LoadBootSector(DISK *dsk){
     uint16_t        ReservedSectorCount;
     uint16_t i;
 
-    printf("FAT: Loading boot sector.\n");
+    printf("\tFAT: Loading boot sector.\n");
     
     #if defined(SUPPORT_FAT32)
     uint8_t        TriedSpecifiedBackupBootSec = FALSE;
@@ -1774,7 +1731,7 @@ uint8_t LoadBootSector(DISK *dsk){
     #endif
     // Get the Boot sector
     if ( MDD_SectorRead( dsk->firsts, dsk->buffer) != TRUE){
-        printf("FAT: Sector read failed!\n");
+        printf("\tFAT: Sector read failed!\n");
         error = CE_BAD_SECTOR_READ;
     }
     
@@ -1843,17 +1800,17 @@ uint8_t LoadBootSector(DISK *dsk){
     
                     // Determine the file system type based on the number of clusters used
                     if (dsk->maxcls < 4085){
-                        printf("FAT: Detected FAT12.\n");
+                        printf("\tFAT: Detected FAT12.\n");
                         dsk->type = FAT12;
                     }
                     else{
                         if (dsk->maxcls < 65525){
-                            printf("FAT: Detected FAT16.\n");
+                            printf("\tFAT: Detected FAT16.\n");
                             dsk->type = FAT16;
                         }
                         else{
                             #ifdef SUPPORT_FAT32
-                                printf("FAT: Detected FAT32.\n");
+                                printf("\tFAT: Detected FAT32.\n");
                                 dsk->type = FAT32;
                             #else
                                 error = CE_CARDFAT32;
@@ -12452,775 +12409,6 @@ int wFindFirst (const unsigned short int * fileName, unsigned int attr, SearchRe
 	return result;
 }
 #endif
-
-#endif
-
-#ifdef ALLOW_FSFPRINTF
-
-
-/**********************************************************************
-  Function:
-    int FSputc (char c, FSFILE * file)
-  Summary:
-    FSfprintf helper function to write a char
-  Conditions:
-    This function should not be called by the user.
-  Input:
-    c - The character to write to the file.
-    file - The file to write to.
-  Return Values:
-    0 -   The character was written successfully
-    EOF - The character was not written to the file.
-  Side Effects:
-    None
-  Description:
-    This is a helper function for FSfprintf.  It will write one
-    character to a file.
-  Remarks:
-    None
-  **********************************************************************/
-
-int FSputc (char c, FSFILE * file)
-{
-    if (FSfwrite ((void *)&c, 1, 1, file) != 1)
-        return EOF;
-    else
-        return 0;
-}
-
-
-/**********************************************************************
-  Function:
-    int str_put_n_chars (FSFILE * handle, unsigned char n, char c)
-  Summary:
-    FSfprintf helper function to write a char multiple times
-  Conditions:
-    This function should not be called by the user.
-  Input:
-    handle - The file to write to.
-    n -      The number of times to write that character to a file.
-    c - The character to write to the file.
-  Return Values:
-    0 -   The characters were written successfully
-    EOF - The characters were not written to the file.
-  Side Effects:
-    None
-  Description:
-    This funciton is used by the FSfprintf function to write multiple
-    instances of a single character to a file (for example, when
-    padding a format specifier with leading spacez or zeros).
-  Remarks:
-    None.
-  **********************************************************************/
-
-
-unsigned char str_put_n_chars (FSFILE * handle, unsigned char n, char c)
-{
-    while (n--)
-    if (FSputc (c, handle) == EOF)
-        return 1;
-    return 0;
-}
-
-
-/**********************************************************************
-  Function:
-    // PIC24/30/33/32
-    int FSfprintf (FSFILE * fptr, const char * fmt, ...)
-    // PIC18
-    int FSfpritnf (FSFILE * fptr, const rom char * fmt, ...)
-  Summary:
-    Function to write formatted strings to a file
-  Conditions:
-    For PIC18, integer promotion must be enabled in the project build
-    options menu.  File opened in a write mode.
-  Input:
-    fptr - A pointer to the file to write to.
-    fmt -  A string of characters and format specifiers to write to
-           the file
-    ... -  Additional arguments inserted in the string by format
-           specifiers
-  Returns:
-    The number of characters written to the file
-  Side Effects:
-    The FSerrno variable will be changed.
-  Description:
-    Writes a specially formatted string to a file.
-  Remarks:
-    Consult AN1045 for a full description of how to use format
-    specifiers.
-  **********************************************************************/
-
-#ifdef __18CXX
-int FSfprintf (FSFILE *fptr, const rom char *fmt, ...)
-#else
-int FSfprintf (FSFILE *fptr, const char * fmt, ...)
-#endif
-{
-    va_list ap;
-    int n;
-
-    va_start (ap, fmt);
-    n = FSvfprintf (fptr, fmt, ap);
-    va_end (ap);
-    return n;
-}
-
-
-/**********************************************************************
-  Function:
-    // PIC24/30/33/32
-    int FSvfprintf (FSFILE * handle, const char * formatString, va_list ap)
-    // PIC18
-    int FSvfpritnf (auto FSFILE * handle, auto const rom char * formatString, auto va_list ap)
-  Summary:
-    Helper function for FSfprintf
-  Conditions:
-    This function should not be called by the user.
-  Input:
-    handle -        A pointer to the file to write to.
-    formatString -  A string of characters and format specifiers to write to
-                    the file
-    ap -            A structure pointing to the arguments on the stack
-  Returns:
-    The number of characters written to the file
-  Side Effects:
-    The FSerrno variable will be changed.
-  Description:
-    This helper function will access the elements passed to FSfprintf
-  Remarks:
-    Consult AN1045 for a full description of how to use format
-    specifiers.
-  **********************************************************************/
-
-#ifdef __18CXX
-int FSvfprintf (auto FSFILE *handle, auto const rom char * formatString, auto va_list ap)
-#else
-int FSvfprintf (FSFILE *handle, const char * formatString, va_list ap)
-#endif
-{
-    unsigned char c;
-    int count = 0;
-
-    for (c = *formatString; c; c = *++formatString)
-    {
-        if (c == '%')
-        {
-            unsigned char    flags = 0;
-            unsigned char    width = 0;
-            unsigned char    precision = 0;
-            unsigned char    have_precision = 0;
-            unsigned char    size = 0;
-#ifndef __18CXX
-            unsigned char   size2 = 0;
-#endif
-            unsigned char    space_cnt;
-            unsigned char    cval;
-#ifdef __18CXX
-            unsigned long    larg;
-            far rom char *   romstring;
-#else
-            unsigned long long larg;
-#endif
-            char *         ramstring;
-            int n;
-
-            FSerrno = CE_GOOD;
-
-            c = *++formatString;
-
-            while ((c == '-') || (c == '+') || (c == ' ') || (c == '#') || (c == '0'))
-            {
-                switch (c)
-                {
-                    case '-':
-                        flags |= _FLAG_MINUS;
-                        break;
-                    case '+':
-                        flags |= _FLAG_PLUS;
-                        break;
-                    case ' ':
-                        flags |= _FLAG_SPACE;
-                        break;
-                    case '#':
-                        flags |= _FLAG_OCTO;
-                        break;
-                    case '0':
-                        flags |= _FLAG_ZERO;
-                        break;
-                }
-                c = *++formatString;
-            }
-            /* the optional width field is next */
-            if (c == '*')
-            {
-                n = va_arg (ap, int);
-                if (n < 0)
-                {
-                    flags |= _FLAG_MINUS;
-                    width = -n;
-                }
-                else
-                    width = n;
-                c = *++formatString;
-            }
-            else
-            {
-                cval = 0;
-                while ((unsigned char) isdigit (c))
-                {
-                    cval = cval * 10 + c - '0';
-                    c = *++formatString;
-                }
-                width = cval;
-            }
-
-            /* if '-' is specified, '0' is ignored */
-            if (flags & _FLAG_MINUS)
-                flags &= ~_FLAG_ZERO;
-
-            /* the optional precision field is next */
-            if (c == '.')
-            {
-                c = *++formatString;
-                if (c == '*')
-                {
-                    n = va_arg (ap, int);
-                    if (n >= 0)
-                    {
-                        precision = n;
-                        have_precision = 1;
-                    }
-                    c = *++formatString;
-                }
-                else
-                {
-                    cval = 0;
-                    while ((unsigned char) isdigit (c))
-                    {
-                        cval = cval * 10 + c - '0';
-                        c = *++formatString;
-                    }
-                    precision = cval;
-                    have_precision = 1;
-                }
-            }
-
-            /* the optional 'h' specifier. since int and short int are
-                the same size for MPLAB C18, this is a NOP for us. */
-            if (c == 'h')
-            {
-                c = *++formatString;
-                /* if 'c' is another 'h' character, this is an 'hh'
-                    specifier and the size is 8 bits */
-                if (c == 'h')
-                {
-                    size = _FMT_uint8_t;
-                    c = *++formatString;
-                }
-            }
-            else if ((c == 't') || (c == 'z'))
-                c = *++formatString;
-#ifdef __18CXX
-            else if ((c == 'H') || (c == 'T') || (c == 'Z'))
-            {
-                size = _FMT_SHRTLONG;
-                c = *++formatString;
-            }
-            else if ((c == 'l') || (c == 'j'))
-#else
-            else if ((c == 'q') || (c == 'j'))
-            {
-                size = _FMT_LONGLONG;
-                c = *++formatString;
-            }
-            else if (c == 'l')
-#endif
-            {
-                size = _FMT_LONG;
-                c = *++formatString;
-            }
-
-            switch (c)
-            {
-                case '\0':
-                /* this is undefined behaviour. we have a trailing '%' character
-                    in the string, perhaps with some flags, width, precision
-                    stuff as well, but no format specifier. We'll, arbitrarily,
-                    back up a character so that the loop will terminate
-                    properly when it loops back and we'll output a '%'
-                    character. */
-                    --formatString;
-                /* fallthrough */
-                case '%':
-                    if (FSputc ('%', handle) == EOF)
-                    {
-                        FSerrno = CE_WRITE_ERROR;
-                        return EOF;
-                    }
-                    ++count;
-                    break;
-                case 'c':
-                    space_cnt = 0;
-                    if (width > 1)
-                    {
-                        space_cnt = width - 1;
-                        count += space_cnt;
-                    }
-                    if (space_cnt && !(flags & _FLAG_MINUS))
-                    {
-                        if (str_put_n_chars (handle, space_cnt, ' '))
-                        {
-                            FSerrno = CE_WRITE_ERROR;
-                            return EOF;
-                        }
-                        space_cnt = 0;
-                    }
-                    c = va_arg (ap, int);
-                    if (FSputc (c, handle) == EOF)
-                    {
-                        FSerrno = CE_WRITE_ERROR;
-                        return EOF;
-                    }
-                    ++count;
-                    if (str_put_n_chars (handle, space_cnt, ' '))
-                    {
-                        FSerrno = CE_WRITE_ERROR;
-                        return EOF;
-                    }
-                    break;
-                case 'S':
-#ifdef __18CXX
-                    if (size == _FMT_SHRTLONG)
-                        romstring = va_arg (ap, rom far char *);
-                    else
-                        romstring = (far rom char*)va_arg (ap, rom near char *);
-                    n = strlenpgm (romstring);
-                    /* Normalize the width based on the length of the actual
-                        string and the precision. */
-                    if (have_precision && precision < (unsigned char) n)
-                        n = precision;
-                    if (width < (unsigned char) n)
-                        width = n;
-                    space_cnt = width - (unsigned char) n;
-                    count += space_cnt;
-                    /* we've already calculated the space count that the width
-                        will require. now we want the width field to have the
-                        number of character to display from the string itself,
-                        limited by the length of the actual string and the
-                        specified precision. */
-                    if (have_precision && precision < width)
-                        width = precision;
-                    /* if right justified, we print the spaces before the
-                        string */
-                    if (!(flags & _FLAG_MINUS))
-                    {
-                        if (str_put_n_chars (handle, space_cnt, ' '))
-                        {
-                            FSerrno = CE_WRITE_ERROR;
-                            return EOF;
-                        }
-                        space_cnt = 0;
-                    }
-                    cval = 0;
-                    for (c = *romstring; c && cval < width; c = *++romstring)
-                    {
-                        if (FSputc (c, handle) == EOF)
-                        {
-                            FSerrno = CE_WRITE_ERROR;
-                            return EOF;
-                        }
-                        ++count;
-                        ++cval;
-                    }
-                    /* If there are spaces left, it's left justified.
-                        Either way, calling the function unconditionally
-                        is smaller code. */
-                    if (str_put_n_chars (handle, space_cnt, ' '))
-                    {
-                        FSerrno = CE_WRITE_ERROR;
-                        return EOF;
-                    }
-                    break;
-#endif
-                case 's':
-                    ramstring = va_arg (ap, char *);
-                    n = strlen (ramstring);
-                    /* Normalize the width based on the length of the actual
-                        string and the precision. */
-                    if (have_precision && precision < (unsigned char) n)
-                        n = precision;
-                    if (width < (unsigned char) n)
-                        width = n;
-                    space_cnt = width - (unsigned char) n;
-                    count += space_cnt;
-                    /* we've already calculated the space count that the width
-                        will require. now we want the width field to have the
-                        number of character to display from the string itself,
-                        limited by the length of the actual string and the
-                        specified precision. */
-                    if (have_precision && precision < width)
-                        width = precision;
-                    /* if right justified, we print the spaces before the string */
-                    if (!(flags & _FLAG_MINUS))
-                    {
-                        if (str_put_n_chars (handle, space_cnt, ' '))
-                        {
-                            FSerrno = CE_WRITE_ERROR;
-                            return EOF;
-                        }
-                        space_cnt = 0;
-                    }
-                    cval = 0;
-                    for (c = *ramstring; c && cval < width; c = *++ramstring)
-                    {
-                        if (FSputc (c, handle) == EOF)
-                        {
-                            FSerrno = CE_WRITE_ERROR;
-                            return EOF;
-                        }
-                        ++count;
-                        ++cval;
-                    }
-                    /* If there are spaces left, it's left justified.
-                        Either way, calling the function unconditionally
-                        is smaller code. */
-                    if (str_put_n_chars (handle, space_cnt, ' '))
-                    {
-                        FSerrno = CE_WRITE_ERROR;
-                        return EOF;
-                    }
-                    break;
-                case 'd':
-                case 'i':
-                    flags |= _FLAG_SIGNED;
-                /* fall through */
-                case 'o':
-                case 'u':
-                case 'x':
-                case 'X':
-                case 'b':
-                case 'B':
-                    /* This is a bit of a trick. The 'l' and 'hh' size
-                        specifiers are valid only for the integer conversions,
-                        not the 'p' or 'P' conversions, and are ignored for the
-                        latter. By jumping over the additional size specifier
-                        checks here we get the best code size since we can
-                        limit the size checks in the remaining code. */
-                    if (size == _FMT_LONG)
-                    {
-                        if (flags & _FLAG_SIGNED)
-                            larg = va_arg (ap, long int);
-                        else
-                            larg = va_arg (ap, unsigned long int);
-                        goto _do_integer_conversion;
-                    }
-                    else if (size == _FMT_uint8_t)
-                    {
-                        if (flags & _FLAG_SIGNED)
-                            larg = (signed char) va_arg (ap, int);
-                        else
-                            larg = (unsigned char) va_arg (ap, unsigned int);
-                        goto _do_integer_conversion;
-                    }
-#ifndef __18CXX
-                    else if (size == _FMT_LONGLONG)
-                    {
-                        if (flags & _FLAG_SIGNED)
-                            larg = (signed long long)va_arg (ap, long long);
-                        else
-                            larg = (unsigned long long) va_arg (ap, unsigned long long);
-                        goto _do_integer_conversion;
-                    }
-#endif
-                    /* fall trough */
-                case 'p':
-                case 'P':
-#ifdef __18CXX
-                    if (size == _FMT_SHRTLONG)
-                    {
-                        if (flags & _FLAG_SIGNED)
-                            larg = va_arg (ap, short long int);
-                        else
-                            larg = va_arg (ap, unsigned short long int);
-                    }
-                    else
-#endif
-                        if (flags & _FLAG_SIGNED)
-                            larg = va_arg (ap, int);
-                        else
-                            larg = va_arg (ap, unsigned int);
-                    _do_integer_conversion:
-                        /* default precision is 1 */
-                        if (!have_precision)
-                            precision = 1;
-                        {
-                            unsigned char digit_cnt = 0;
-                            unsigned char prefix_cnt = 0;
-                            unsigned char sign_char;
-                            /* A 32 bit number will require at most 32 digits in the
-                                string representation (binary format). */
-#ifdef __18CXX
-                            char buf[33];
-                            /* Start storing digits least-significant first */
-                            char *q = &buf[31];
-                            /* null terminate the string */
-                            buf[32] = '\0';
-#else
-                            char buf[65];
-                            char *q = &buf[63];
-                            buf[64] = '\0';
-#endif
-                            space_cnt = 0;
-                            size = 10;
-
-                            switch (c)
-                            {
-                                case 'b':
-                                case 'B':
-                                    size = 2;
-#ifndef __18CXX
-                                    size2 = 1;
-#endif
-                                    break;
-                                case 'o':
-                                    size = 8;
-#ifndef __18CXX
-                                    size2 = 3;
-#endif
-                                    break;
-                                case 'p':
-                                case 'P':
-                                    /* from here on out, treat 'p' conversions just
-                                        like 'x' conversions. */
-                                    c += 'x' - 'p';
-                                /* fall through */
-                                case 'x':
-                                case 'X':
-                                    size = 16;
-#ifndef __18CXX
-                                    size2 = 4;
-#endif
-                                    break;
-                            }// switch (c)
-
-                            /* if it's an unsigned conversion, we should ignore the
-                                ' ' and '+' flags */
-                            if (!(flags & _FLAG_SIGNED))
-                                flags &= ~(_FLAG_PLUS | _FLAG_SPACE);
-
-                            /* if it's a negative value, we need to negate the
-                                unsigned version before we convert to text. Using
-                                unsigned for this allows us to (ab)use the 2's
-                                complement system to avoid overflow and be able to
-                                adequately handle LONG_MIN.
-
-                                We'll figure out what sign character to print, if
-                                any, here as well. */
-#ifdef __18CXX
-                            if (flags & _FLAG_SIGNED && ((long) larg < 0))
-                            {
-                                larg = -(long) larg;
-#else
-                            if (flags & _FLAG_SIGNED && ((long long) larg < 0))
-                            {
-                                larg = -(long long) larg;
-#endif
-                                sign_char = '-';
-                                ++digit_cnt;
-                            }
-                            else if (flags & _FLAG_PLUS)
-                            {
-                        sign_char = '+';
-                        ++digit_cnt;
-                     }
-                      else if (flags & _FLAG_SPACE)
-                      {
-                                sign_char = ' ';
-                                ++digit_cnt;
-                            }
-                            else
-                                sign_char = '\0';
-                            /* get the digits for the actual number. If the
-                                precision is zero and the value is zero, the result
-                                is no characters. */
-                            if (precision || larg)
-                            {
-                                do
-                                {
-#ifdef __18CXX
-                                    cval = s_digits[larg % size];
-                                    if ((c == 'X') && (cval >= 'a'))
-                                        cval -= 'a' - 'A';
-                                    larg /= size;
-#else
-                                    // larg is congruent mod size2 to its lower 16 bits
-                                    // for size2 = 2^n, 0 <= n <= 4
-                                    if (size2 != 0)
-                                        cval = s_digits[(unsigned int) larg % size];
-                                    else
-                                        cval = s_digits[larg % size];
-                                    if ((c == 'X') && (cval >= 'a'))
-                                        cval -= 'a' - 'A';
-                                    if (size2 != 0)
-                                        larg = larg >> size2;
-                                    else
-                                        larg /= size;
-#endif
-                                    *q-- = cval;
-                                    ++digit_cnt;
-                                } while (larg);
-                                /* if the '#' flag was specified and we're dealing
-                                    with an 'o', 'b', 'B', 'x', or 'X' conversion,
-                                    we need a bit more. */
-                                if (flags & _FLAG_OCTO)
-                                {
-                                    if (c == 'o')
-                                    {
-                                        /* per the standard, for octal, the '#' flag
-                                            makes the precision be at least one more
-                                            than the number of digits in the number */
-                                        if (precision <= digit_cnt)
-                                            precision = digit_cnt + 1;
-                                    }
-                                    else if ((c == 'x') || (c == 'X') || (c == 'b') || (c == 'B'))
-                                        prefix_cnt = 2;
-                                }
-                            }
-                            else
-                                digit_cnt = 0;
-
-                            /* The leading zero count depends on whether the '0'
-                                flag was specified or not. If it was not, then the
-                                count is the difference between the specified
-                                precision and the number of digits (including the
-                                sign character, if any) to be printed; otherwise,
-                                it's as if the precision were equal to the max of
-                                the specified precision and the field width. If a
-                                precision was specified, the '0' flag is ignored,
-                                however. */
-                            if ((flags & _FLAG_ZERO) && (width > precision)
-                                && !have_precision)
-                                precision = width;
-                            /* for the rest of the processing, precision contains
-                                the leading zero count for the conversion. */
-                            if (precision > digit_cnt)
-                                precision -= digit_cnt;
-                            else
-                                precision = 0;
-                            /* the space count is the difference between the field
-                                width and the digit count plus the leading zero
-                                count. If the width is less than the digit count
-                                plus the leading zero count, the space count is
-                                zero. */
-                            if (width > precision + digit_cnt + prefix_cnt)
-                                space_cnt =   width - precision - digit_cnt - prefix_cnt;
-
-                            /* for output, we check the justification, if it's
-                                right justified and the space count is positive, we
-                                emit the space characters first. */
-                            if (!(flags & _FLAG_MINUS) && space_cnt)
-                            {
-                                if (str_put_n_chars (handle, space_cnt, ' '))
-                                {
-                                    FSerrno = CE_WRITE_ERROR;
-                                    return EOF;
-                                }
-                                count += space_cnt;
-                                space_cnt = 0;
-                            }
-                            /* if we have a sign character to print, that comes
-                                next */
-                            if (sign_char)
-                                if (FSputc (sign_char, handle) == EOF)
-                                {
-                                    FSerrno = CE_WRITE_ERROR;
-                                    return EOF;
-                                }
-                            /* if we have a prefix (0b, 0B, 0x or 0X), that's next */
-                            if (prefix_cnt)
-                            {
-                                if (FSputc ('0', handle) == EOF)
-                                {
-                                    FSerrno = CE_WRITE_ERROR;
-                                    return EOF;
-                                }
-                                if (FSputc (c, handle) == EOF)
-                                {
-                                    FSerrno = CE_WRITE_ERROR;
-                                    return EOF;
-                                }
-                            }
-                            /* if we have leading zeros, they follow. the prefix, if any
-                                is included in the number of digits when determining how
-                                many leading zeroes are needed. */
-//                            if (precision > prefix_cnt)
-  //                              precision -= prefix_cnt;
-                            if (str_put_n_chars (handle, precision, '0'))
-                            {
-                                FSerrno = CE_WRITE_ERROR;
-                                return EOF;
-                            }
-                            /* print the actual number */
-                            for (cval = *++q; cval; cval = *++q)
-                                if (FSputc (cval, handle) == EOF)
-                                {
-                                    FSerrno = CE_WRITE_ERROR;
-                                    return EOF;
-                                }
-                            /* if there are any spaces left, they go to right-pad
-                                the field */
-                            if (str_put_n_chars (handle, space_cnt, ' '))
-                            {
-                                FSerrno = CE_WRITE_ERROR;
-                                return EOF;
-                            }
-
-                            count += precision + digit_cnt + space_cnt + prefix_cnt;
-                        }
-                        break;
-                case 'n':
-                    switch (size)
-                    {
-                        case _FMT_LONG:
-                            *(long *) va_arg (ap, long *) = count;
-                            break;
-#ifdef __18CXX
-                        case _FMT_SHRTLONG:
-                            *(short long *) va_arg (ap, short long *) = count;
-                            break;
-#else
-                        case _FMT_LONGLONG:
-                            *(long long *) va_arg (ap, long long *) = count;
-                            break;
-#endif
-                        case _FMT_uint8_t:
-                            *(signed char *) va_arg (ap, signed char *) = count;
-                            break;
-                        default:
-                            *(int *) va_arg (ap, int *) = count;
-                            break;
-                    }
-                    break;
-                default:
-                    /* undefined behaviour. we do nothing */
-                    break;
-            }
-        }
-        else
-        {
-            if (FSputc (c, handle) == EOF)
-            {
-                FSerrno = CE_WRITE_ERROR;
-                return EOF;
-            }
-            ++count;
-        }
-    }
-    return count;
-}
-
-
 
 #endif
 

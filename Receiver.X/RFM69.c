@@ -114,7 +114,7 @@ uint8_t RFM69_initialize(uint8_t nodeID, uint8_t networkID) {
         }
         getMillis(&now);
         if (now > (start + timeout)) {
-            printf("RF: AA sync timeout!\n");
+            printf("\tRF: AA sync timeout!\n");
             result = 1;
             break;
         }
@@ -129,14 +129,14 @@ uint8_t RFM69_initialize(uint8_t nodeID, uint8_t networkID) {
         }
         getMillis(&now);
         if (now > (start + timeout)) {
-            printf("RF: 55 sync timeout!\n");
+            printf("\tRF: 55 sync timeout!\n");
             result = 1;
             break;
         }
     }
 
     if (result == 0) {
-        printf("RF: Writing initial config\n");
+        printf("\tRF: Writing initial config\n");
         for (uint8_t i = 0; CONFIG[i][0] != 255; i++) {
             RFM69_writeReg(CONFIG[i][0], CONFIG[i][1]);
         }
@@ -145,12 +145,12 @@ uint8_t RFM69_initialize(uint8_t nodeID, uint8_t networkID) {
     // Encryption is persistent between resets and can trip you up during debugging.
     // Disable it during initialization so we always start from a known state.
     if (result == 0) {
-        printf("RF: Disabling encryption\n");
+        printf("\tRF: Disabling encryption\n");
         RFM69_encrypt(0);
     }
 
     if (result == 0) {
-        printf("RF: Setting power and mode\n");
+        printf("\tRF: Setting power and mode\n");
         RFM69_setHighPower(RF_isRFM69HW); // called regardless if it's a RFM69W or RFM69HW
         RFM69_setMode(RF69_MODE_STANDBY);
     }
@@ -163,7 +163,7 @@ uint8_t RFM69_initialize(uint8_t nodeID, uint8_t networkID) {
             }
             getMillis(&now);
             if (now > (start + timeout)) {
-                printf("RF: mode ready timeout!\n");
+                printf("\tRF: mode ready timeout!\n");
                 result = 1;
                 break;
             }
@@ -172,7 +172,7 @@ uint8_t RFM69_initialize(uint8_t nodeID, uint8_t networkID) {
 
     SPI2_Close();
 
-    printf("RF: Enabling interrupt\n");
+    printf("\tRF: Enabling interrupt\n");
     //attachInterrupt(_interruptNum, RFM69_isr0, RISING);
     //DIO0 (interrupt) on C7
     TRISCbits.TRISC7 = INPUT;

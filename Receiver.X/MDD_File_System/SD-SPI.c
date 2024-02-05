@@ -1170,7 +1170,7 @@ uint8_t MDD_SDSPI_AsyncWriteTasks(ASYNC_IO* info)
                 {
                     //Something went wrong.  Try and terminate as gracefully as 
                     //possible, so as allow possible recovery.
-                    printf("Incorrect write response\n");
+                    printf("\tSD: Incorrect write response!\n");
                     info->bStateVariable = ASYNC_WRITE_ABORT; 
                     return ASYNC_WRITE_BUSY;
                 }
@@ -1283,7 +1283,7 @@ uint8_t MDD_SDSPI_AsyncWriteTasks(ASYNC_IO* info)
             }    
             //Timeout occurred.  Something went wrong.  Fall through to ASYNC_WRITE_ABORT.
         case ASYNC_WRITE_ABORT:
-            printf("Wabort\n");
+            printf("\tSD: Wabort\n");
             //An error occurred, and we need to stop the write sequence so as to try and allow
             //for recovery/re-attempt later.
             SendMMCCmd(STOP_TRANSMISSION, 0x00000000);
@@ -1549,7 +1549,7 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
 	uint8_t block_len;
     uint8_t i;
 	
-    printf("SD: Initializing media\n");
+    printf("\tSD: Initializing media\n");
  
     //Initialize global variables.  Will get updated later with valid data once
     //the data is known.
@@ -1640,11 +1640,11 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
         else
         {
             //Card successfully processed CMD0 and is now in the idle state.
-            printf("SD: Media successfully processed CMD0 after CMD12.\n");
+            printf("\tSD: Media successfully processed CMD0 after CMD12.\n");
         }    
     }//if (timeout == 0) [for the CMD0 transmit loop]
     else{ 
-        printf("SD: Media successfully processed CMD0.\n");
+        printf("\tSD: Media successfully processed CMD0.\n");
     }       
     
 
@@ -1662,7 +1662,7 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
         //If we get to here, the device supported the CMD8 command and didn't complain about our host
         //voltage range.
         //Most likely this means it is either a v2.0 spec standard or high capacity SD card (SDHC)
-        printf("SD: Media successfully processed CMD8. Response = %lX\n", *((uint32_t*)&response + 1));
+        printf("\tSD: Media successfully processed CMD8. Response = %lX\n", *((uint32_t*)&response + 1));
 
 		//Send CMD58 (Read OCR [operating conditions register]).  Reponse type is R3, which has 5 bytes.
 		//Byte 4 = normal R1 response byte, Bytes 3-0 are = OCR register value.
@@ -1691,12 +1691,12 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
 			//in the "standby" state, the SD card is finished with basic intitialization and is ready 
 			//for read/write and other commands.
 			if (response.r1._byte == 0){ 
-                printf("SD: Media successfully processed CMD55/ACMD41 and is no longer busy.\n");
+                printf("\tSD: Media successfully processed CMD55/ACMD41 and is no longer busy.\n");
 				break;  //Break out of for() loop.  Card is finished initializing.
             }				
 		}		
 		if (timeout >= 0xFFFF){
-            printf("SD: Media Timeout on CMD55/ACMD41.\n");
+            printf("\tSD: Media Timeout on CMD55/ACMD41.\n");
     		mediaInformation.errorCode = MEDIA_CANNOT_INITIALIZE;
         }				
 		
@@ -1711,12 +1711,12 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
 		{
 			gSDMode = SD_MODE_HC;
 			 
-            printf("SD: Media successfully processed CMD58: SD card is SDHC v2.0 (or later) physical spec type.\n");
+            printf("\tSD: Media successfully processed CMD58: SD card is SDHC v2.0 (or later) physical spec type.\n");
         }				
         else
         {
             gSDMode = SD_MODE_NORMAL;
-            printf("SD: Media successfully processed CMD58: SD card is standard capacity v2.0 (or later) spec.\n");
+            printf("\tSD: Media successfully processed CMD58: SD card is standard capacity v2.0 (or later) spec.\n");
         } 
         //SD Card should now be finished with initialization sequence.  Device should be ready
         //for read/write commands.
@@ -1725,7 +1725,7 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
     else{
         //The CMD8 wasn't supported.  This means the card is not a v2.0 card.
         //Presumably the card is v1.x device, standard capacity (not SDHC).  
-        printf("SD: CMD8 Unsupported: Media is most likely MMC or SD 1.x device.\n");
+        printf("\tSD: CMD8 Unsupported: Media is most likely MMC or SD 1.x device.\n");
 
         SD_CS = 1;                              // deselect the devices
         __delay_ms(1);
@@ -1742,13 +1742,13 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
         }while((response.r1._byte != 0x00) && (timeout != 0));
         // see if it failed
         if (timeout == 0){
-            printf("SD: CMD1 failed at line %u.\n", __LINE__);
+            printf("\tSD: CMD1 failed at line %u.\n", __LINE__);
             mediaInformation.errorCode = MEDIA_CANNOT_INITIALIZE;
 
             SD_CS = 1;                              // deselect the devices
         }
         else{
-            printf("SD: CMD1 Successfully processed at line %u, media is no longer busy.\n", __LINE__);
+            printf("\tSD: CMD1 Successfully processed at line %u, media is no longer busy.\n", __LINE__);
             
             //Set read/write block length to 512 bytes.  Note: commented out since
             //this theoretically isn't necessary, since all cards v1 and v2 are 
@@ -1780,11 +1780,11 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
         timeout--;
     }while((response.r1._byte != 0x00) && (timeout != 0));
     if (timeout != 0x00){
-        printf("SD: CMD9 Successfully processed at line %u: Read CSD register. CMD9 response R1 byte = %X\n", __LINE__, *((unsigned char*)&response));
+        printf("\tSD: CMD9 Successfully processed at line %u: Read CSD register. CMD9 response R1 byte = %X\n", __LINE__, *((unsigned char*)&response));
     }    
     else{
         //Media failed to respond to the read CSD register operation.
-        printf("SD: Timeout occurred while processing CMD9 at line %u to read CSD register.\n", __LINE__);
+        printf("\tSD: Timeout occurred while processing CMD9 at line %u to read CSD register.\n", __LINE__);
         
         mediaInformation.errorCode = MEDIA_CANNOT_INITIALIZE;
 
@@ -1809,7 +1809,7 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
 		}
 	}
 
-    printf("SD: CSD data structure contains: ");
+    printf("\tSD: CSD data structure contains: ");
     for(i=0; i<20; i++){
         printf(" %X", ((unsigned char*)&CSDResponse)[i]); 
     }
@@ -1891,7 +1891,7 @@ MEDIA_INFORMATION *  MDD_SDSPI_MediaInitialize(void)
     //Deselect media while not actively accessing the card.
     SD_CS = 1;
 
-    printf("SD: Media initialized.\n");
+    printf("\tSD: Media initialized.\n");
 
 
     return &mediaInformation;
