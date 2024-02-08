@@ -101,10 +101,14 @@ void SPI2_Open_RFM69(void){
 }
 
 void SPI2_Close(void){
+    printf("Closing SPI2.\n");
     SPI2CON0bits.EN = FALSE; //Disable
 }
 
 uint8_t SPI2Transfer(uint8_t data){
+    if(!SPI2CON0bits.EN){
+        printf("Warning! SPI2Transfer called when port is not open.\n");
+    }
     uint8_t timeout = 100;
     uint8_t result = 0;
     SPI2TXB = data;

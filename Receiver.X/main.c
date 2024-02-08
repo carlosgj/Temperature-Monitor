@@ -206,7 +206,7 @@ uint8_t init(void) {
 //    printf("FAT demo done.\n\n");
 
     printf("Initializing RFM69...\n");
-    initErrorCode = RFM69_initialize(0, 0);
+    initErrorCode = RFM69_initialize(0, 0xd4);
     if (initErrorCode != 0) {
         printf("RFM69 init error %d!\n", initErrorCode);
         if (initError == 0) {
@@ -229,6 +229,7 @@ uint8_t init(void) {
 void run(void) {
     uint8_t minorCycleCounter = 0;
     uint16_t minorCycleStartTime, minorCycleEndTime, minorCycleDuration;
+    uint8_t i;
 
     while (TRUE) {
         getMillis(&minorCycleStartTime);
@@ -243,7 +244,11 @@ void run(void) {
         }
         
         if(RFM69_receiveDone()){
-            printf("Got RF data???\n");
+            printf("Got RF data??? %d\n", RFM69_DATALEN);
+            for(i=0; i<RFM69_DATALEN; i++){
+                printf(" %02X", RFM69_DATA[i]);
+            }
+            printf("\n");
         }
         
         if(unhandledIntFlag){
@@ -309,6 +314,7 @@ void __interrupt(irq(IOC), low_priority) IOCISR(void) {
     if(IOCCFbits.IOCCF7){
         //RF DIO0
         RF_haveData = TRUE;
+        RFM69_interruptHandler();
         IOCCFbits.IOCCF7 = FALSE;
         return;
     }

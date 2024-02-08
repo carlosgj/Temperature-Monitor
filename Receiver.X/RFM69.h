@@ -29,7 +29,7 @@
 #include "common.h"
 #include "SPI.h"
 
-//#define DEBUG_RF
+#define DEBUG_RF
 
 #define RF69_MAX_DATA_LEN       61 // to take advantage of the built in AES/CRC we want to limit the frame size to the internal FIFO size (66 bytes - 3 bytes overhead - 2 bytes crc)
 #define CSMA_LIMIT              -90 // upper RX signal sensitivity threshold in dBm for carrier sense access
@@ -93,7 +93,7 @@ void RFM69_rcCalibration(); // calibrate the internal RC oscillator for use in w
 void RFM69_receiveBegin();
 void RFM69_setHighPowerRegs(uint8_t onOff);
 static void isr0();
-void interruptHandler();
+void RFM69_interruptHandler();
 void interruptHook(uint8_t CTLbyte);
 void RFM69_writeReg(uint8_t address, uint8_t data);
 uint8_t RFM69_readReg(uint8_t address);
@@ -106,7 +106,7 @@ static volatile uint8_t RF_haveData;
 uint8_t RF_address;
 uint8_t RF_promiscuousMode;
 uint8_t RF_powerLevel;
-uint8_t RF_isRFM69HW = TRUE;
+//uint8_t RF_isRFM69HW = TRUE;
 #if defined (SPCR) && defined (SPSR)
 uint8_t _SPCR;
 uint8_t _SPSR;
