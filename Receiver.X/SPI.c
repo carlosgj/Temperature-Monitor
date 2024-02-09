@@ -101,7 +101,7 @@ void SPI2_Open_RFM69(void){
 }
 
 void SPI2_Close(void){
-    printf("Closing SPI2.\n");
+    //printf("Closing SPI2.\n");
     SPI2CON0bits.EN = FALSE; //Disable
 }
 

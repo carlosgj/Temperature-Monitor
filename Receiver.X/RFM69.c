@@ -183,12 +183,12 @@ uint8_t RFM69_initialize(uint8_t nodeID, uint8_t networkID) {
     // Disable it during initialization so we always start from a known state.
     if (result == 0) {
         printf("\tRF: Disabling encryption\n");
-        //RFM69_encrypt(0);
+        RFM69_encrypt(0);
     }
 
     if (result == 0) {
         printf("\tRF: Setting power and mode\n");
-        //RFM69_setHighPower(RF_isRFM69HW); // called regardless if it's a RFM69W or RFM69HW
+        RFM69_setHighPower(TRUE); // called regardless if it's a RFM69W or RFM69HW
         RFM69_setMode(RF69_MODE_STANDBY);
     }
 
@@ -332,11 +332,15 @@ void RFM69_interruptHandler() {
         RFM69_setMode(RF69_MODE_STANDBY);
         RFM69_CS_LAT = FALSE;
         SPI2Transfer(REG_FIFO & 0x7F);
-        RFM69_PAYLOADLEN = 20;
-        if (RFM69_PAYLOADLEN > 66) {
-            RFM69_PAYLOADLEN = 66; // precaution
+        
+        RFM69_PAYLOADLEN = SPI2Transfer(0);
+        //printf("PAYLOADLEN: %02X\n", RFM69_PAYLOADLEN);
+        
+        if (RFM69_PAYLOADLEN > RF69_MAX_DATA_LEN) {
+            RFM69_PAYLOADLEN = RF69_MAX_DATA_LEN; // precaution
         }
         RFM69_TARGETID = SPI2Transfer(0);
+        //printf("TARGETID: %02X\n", RFM69_TARGETID);
         if (!(RFM69_promiscuousMode || RFM69_TARGETID == RF_address || RFM69_TARGETID == RF69_BROADCAST_ADDR) // match this node's address, or broadcast address or anything in promiscuous mode
                 || RFM69_PAYLOADLEN < 3) // address situation could receive packets that are malformed and don't fit this libraries extra fields
         {
@@ -347,38 +351,92 @@ void RFM69_interruptHandler() {
             return;
         }
 
-        RFM69_DATALEN = RFM69_PAYLOADLEN - 3;
+        RFM69_DATALEN = RFM69_PAYLOADLEN - 4;
         RFM69_SENDERID = SPI2Transfer(0);
+        //printf("SENDERID: %02X\n", RFM69_SENDERID);
+        RFM69_ID = SPI2Transfer(0);
         uint8_t CTLbyte = SPI2Transfer(0);
-
-        RFM69_ACK_RECEIVED = CTLbyte & RFM69_CTL_SENDACK; // extract ACK-received flag
-        RFM69_ACK_REQUESTED = CTLbyte & RFM69_CTL_REQACK; // extract ACK-requested flag
-
-        //interruptHook(CTLbyte); // TWS: hook to derived class interrupt function
+        //printf("CTLbyte: %02X\n", CTLbyte);
 
         for (uint8_t i = 0; i < RFM69_DATALEN; i++) {
-            RFM69_DATA[i] = SPI2Transfer(0);
+            RF_data_prelim.rawBytes[i] = SPI2Transfer(0);
         }
-        if (RFM69_DATALEN < RF69_MAX_DATA_LEN) RFM69_DATA[RFM69_DATALEN] = 0; // add null at end of string
+
         RFM69_CS_LAT = TRUE;
         RFM69_setMode(RF69_MODE_RX);
     }
     RFM69_RSSI = RFM69_readRSSI();
+    //printf("RSSI: %d\n", RFM69_RSSI);
     SPI2_Close();
-    printf("Data len: %d\n", RFM69_DATALEN);
+    //printf("Data len: %d\n", RFM69_DATALEN);
     //digitalWrite(4, 0);
 }
 
-// internal function
+void RFM69_processPacket(void){
+    uint8_t calcChecksum = 0;
+    if (RFM69_DATALEN != 11) {
+        printf("RF: Got packet with incorrect length\n");
+        return;
+    }
+        
+    for (uint8_t i = 0; i < 10; i++) {
+        calcChecksum ^= RF_data_prelim.rawBytes[i];
+    }
+    
+    if(calcChecksum != RF_data_prelim.checksum){
+        printf("RF: Got packet with bad checksum\n");
+        return;
+    }
+    
+    memcpy(&RF_data_prelim, &RF_data_good, 11);
+}
+
+void RFM69_send(const uint8_t* data, uint8_t len){
+    uint8_t i, alreadyOpen;
+    
+    alreadyOpen = SPI2CON0bits.EN;
+    
+    if(!alreadyOpen){
+        SPI2_Open_RFM69();
+    }
+    
+    RFM69_setMode(RF69_MODE_STANDBY); // Prevent RX while filling the fifo
+    
+    printf("Sending %d bytes: header+", len + 4);
+    for(i=0; i<len; i++){
+        printf(" %02X", data[i]);
+    }
+    printf("\n");
+
+    RFM69_CS_LAT = FALSE;
+    SPI2Transfer(REG_FIFO & 0x7F);
+    SPI2Transfer(len + 4); // Include length of headers
+    // First the 4 headers
+    SPI2Transfer(0x00);
+    SPI2Transfer(0x00);
+    SPI2Transfer(0x00);
+    SPI2Transfer(0x00);
+    // Now the payload
+    while (len--){
+        SPI2Transfer(*data++);
+    }
+    RFM69_CS_LAT = TRUE;
+
+    RFM69_setMode(RF69_MODE_TX); // Start the transmitter
+    
+    if(!alreadyOpen){
+        SPI2_Close();
+    }
+    __delay_ms(10);
+}
+
 
 void RFM69_receiveBegin() {
-    printf("RF: Receive Begin\n");
+    //printf("RF: Receive Begin\n");
     RFM69_DATALEN = 0;
     RFM69_SENDERID = 0;
     RFM69_TARGETID = 0;
     RFM69_PAYLOADLEN = 0;
-    RFM69_ACK_REQUESTED = 0;
-    RFM69_ACK_RECEIVED = 0;
     RFM69_RSSI = 0;
     SPI2_Open_RFM69();
     if (RFM69_readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PAYLOADREADY){
@@ -392,17 +450,13 @@ void RFM69_receiveBegin() {
 // checks if a packet was received and/or puts transceiver in receive (ie RX or listen) mode
 
 uint8_t RFM69_receiveDone() {
-    if (RF_haveData) {
-#ifdef DEBUG_RF
-        printf("RF: Have data!\n");
-#endif
+    //printf("ReceiveDone\n");
+    if(RF_haveData) {
+        //printf("RF: Have data!\n");
         RF_haveData = FALSE;
         RFM69_interruptHandler();
     }
     if (RFM69_mode == RF69_MODE_RX && RFM69_PAYLOADLEN > 0) {
-#ifdef DEBUG_RF
-        printf("RF: Going to standby\n");
-#endif
         SPI2_Open_RFM69();
         RFM69_setMode(RF69_MODE_STANDBY); // enables interrupts
         SPI2_Close();
@@ -448,14 +502,6 @@ signed int RFM69_readRSSI() {
     return rssi;
 }
 
-// TRUE  = disable filtering to capture all frames on network
-// FALSE = enable node/broadcast filtering to capture only frames sent to this/broadcast address
-
-void RFM69_promiscuous(uint8_t onOff) {
-    RFM69_promiscuousMode = onOff;
-    //RFM69_writeReg(REG_PACKETCONFIG1, (RFM69_readReg(REG_PACKETCONFIG1) & 0xF9) | (onOff ? RF_PACKET1_ADRSFILTERING_OFF : RF_PACKET1_ADRSFILTERING_NODEBROADCAST));
-}
-
 // for RFM69HW only: you must call setHighPower(TRUE) after initialize() or else transmission won't work
 
 void RFM69_setHighPower(uint8_t onOff) {
@@ -498,64 +544,3 @@ uint8_t RFM69_readReg(uint8_t address) {
 #endif
     return result;
 }
-
-//=============================================================================
-//                     ListenMode specific functions  
-//=============================================================================
-#if defined(RF69_LISTENMODE_ENABLE)
-volatile unsigned int RFM69_RF69_LISTEN_BURST_REMAINING_MS = 0;
-
-//=============================================================================
-// reinitRadio() - use base class initialization with saved values
-//=============================================================================
-
-uint8_t RFM69_reinitRadio() {
-    if (!initialize(_freqBand, _address, _networkID)) return FALSE;
-    if (_haveEncryptKey) RFM69_encrypt(_encryptKey); // Restore the encryption key if necessary
-    if (_isHighSpeed) RFM69_writeReg(REG_LNA, (RFM69_readReg(REG_LNA) & ~0x3) | RF_LNA_GAINSELECT_AUTO);
-    return TRUE;
-}
-
-static unsigned long getUsForResolution(uint8_t resolution) {
-    switch (resolution) {
-        case RF_LISTEN1_RESOL_RX_64:
-        case RF_LISTEN1_RESOL_IDLE_64:
-            return 64;
-        case RF_LISTEN1_RESOL_RX_4100:
-        case RF_LISTEN1_RESOL_IDLE_4100:
-            return 4100;
-        case RF_LISTEN1_RESOL_RX_262000:
-        case RF_LISTEN1_RESOL_IDLE_262000:
-            return 262000;
-        default:
-            // Whoops
-            return 0;
-    }
-}
-
-static unsigned long getCoefForResolution(uint8_t resolution, unsigned long duration) {
-    unsigned long resolDuration = getUsForResolution(resolution);
-    unsigned long result = duration / resolDuration;
-
-    // If the next-higher coefficient is closer, use that
-    if (abs(duration - ((result + 1) * resolDuration)) < abs(duration - (result * resolDuration)))
-        return result + 1;
-
-    return result;
-}
-
-static uint8_t chooseResolutionAndCoef(uint8_t *resolutions, unsigned long duration, uint8_t& resolOut, uint8_t& coefOut) {
-    for (int i = 0; resolutions[i]; i++) {
-        unsigned long coef = getCoefForResolution(resolutions[i], duration);
-        if (coef <= 255) {
-            coefOut = coef;
-            resolOut = resolutions[i];
-            return TRUE;
-        }
-    }
-
-    // out of range
-    return FALSE;
-}
-
-#endif

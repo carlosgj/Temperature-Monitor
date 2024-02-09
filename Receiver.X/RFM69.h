@@ -28,8 +28,9 @@
 
 #include "common.h"
 #include "SPI.h"
+#include <string.h>
 
-#define DEBUG_RF
+//#define DEBUG_RF
 
 #define RF69_MAX_DATA_LEN       61 // to take advantage of the built in AES/CRC we want to limit the frame size to the internal FIFO size (66 bytes - 3 bytes overhead - 2 bytes crc)
 #define CSMA_LIMIT              -90 // upper RX signal sensitivity threshold in dBm for carrier sense access
@@ -56,60 +57,54 @@
 #define RFM69_CTL_SENDACK   0x80
 #define RFM69_CTL_REQACK    0x40
 
-static volatile uint8_t RFM69_DATA[RF69_MAX_DATA_LEN]; // recv/xmit buf, including header & crc bytes
-static volatile uint8_t RFM69_DATALEN;
-static volatile uint8_t RFM69_SENDERID;
-static volatile uint8_t RFM69_TARGETID; // should match _address
-static volatile uint8_t RFM69_PAYLOADLEN;
-static volatile uint8_t RFM69_ACK_REQUESTED;
-static volatile uint8_t RFM69_ACK_RECEIVED; // should be polled immediately after sending a packet with ACK request
-static volatile signed int RFM69_RSSI; // most accurate RSSI during reception (closest to the reception). RSSI of last packet.
-static volatile uint8_t RFM69_mode = RF69_MODE_STANDBY;
+union RF_Data_t {
+    uint8_t rawBytes[RF69_MAX_DATA_LEN];
 
-//RFM69(uint8_t slaveSelectPin, uint8_t interruptPin, uint8_t isRFM69HW, uint8_t interruptNum) //interruptNum is now deprecated
-//: RFM69(slaveSelectPin, interruptPin, isRFM69HW) {
-//};
+    struct {
+        uint16_t packetID;
+        uint16_t temperature;
+        uint16_t batteryVoltage;
+        uint16_t solarVoltage;
+        uint16_t internalTemp;
+        uint8_t checksum;
+    };
+} RF_data_prelim, RF_data_good;
 
-//RFM69(uint8_t slaveSelectPin = RF69_SPI_CS, uint8_t interruptPin = RF69_IRQ_PIN, uint8_t isRFM69HW = false);
+volatile uint8_t RFM69_DATALEN;
+volatile uint8_t RFM69_SENDERID;
+volatile uint8_t RFM69_TARGETID; // should match _address
+volatile uint8_t RFM69_ID;
+volatile uint8_t RFM69_PAYLOADLEN;
+volatile signed int RFM69_RSSI; // most accurate RSSI during reception (closest to the reception). RSSI of last packet.
+volatile uint8_t RFM69_mode = RF69_MODE_STANDBY;
 
 uint8_t RFM69_initialize(uint8_t ID, uint8_t networkID);
 void RFM69_setMode(uint8_t newMode);
 void RFM69_setAddress(uint8_t addr);
-void RFM69_setNetwork(uint8_t networkID);
-uint8_t RFM69_canSend();
-uint8_t RFM69_receiveDone();
-uint8_t RFM69_ACKReceived(uint8_t fromNodeID);
-uint8_t RFM69_ACKRequested();
+uint8_t RFM69_receiveDone(void);
 void RFM69_sendACK(const void* buffer, uint8_t bufferSize);
 unsigned long RFM69_getFrequency();
 void RFM69_setFrequency(unsigned long freqHz);
 void RFM69_encrypt(const char* key);
-void RFM69_setCS(uint8_t newSPISlaveSelect);
-signed int RFM69_readRSSI(); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
+signed int RFM69_readRSSI(void); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
 void RFM69_promiscuous(uint8_t onOff);
 void RFM69_setHighPower(uint8_t onOFF); // has to be called after initialize() for RFM69HW
 void RFM69_setPowerLevel(uint8_t level); // reduce/increase transmit power level
 void RFM69_rcCalibration(); // calibrate the internal RC oscillator for use in wide temperature variations - see datasheet section [4.3.5. RC Timer Accuracy]
-void RFM69_receiveBegin();
+void RFM69_receiveBegin(void);
 void RFM69_setHighPowerRegs(uint8_t onOff);
-static void isr0();
+//static void isr0();
 void RFM69_interruptHandler();
-void interruptHook(uint8_t CTLbyte);
 void RFM69_writeReg(uint8_t address, uint8_t data);
 uint8_t RFM69_readReg(uint8_t address);
+void RFM69_send(const uint8_t* data, uint8_t len);
+void RFM69_processPacket(void);
 
-static volatile uint8_t RF_haveData;
+volatile uint8_t RF_haveData;
 
-//uint8_t _slaveSelectPin;
-//uint8_t _interruptPin;
-//uint8_t _interruptNum;
 uint8_t RF_address;
 uint8_t RF_promiscuousMode;
 uint8_t RF_powerLevel;
 //uint8_t RF_isRFM69HW = TRUE;
-#if defined (SPCR) && defined (SPSR)
-uint8_t _SPCR;
-uint8_t _SPSR;
-#endif
 
 #endif

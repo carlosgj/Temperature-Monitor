@@ -215,6 +215,7 @@ uint8_t init(void) {
     } else {
         printf("RFM69 initialized.\n");
     }
+    RFM69_receiveBegin();
     printf("\n");
 
 
@@ -244,11 +245,13 @@ void run(void) {
         }
         
         if(RFM69_receiveDone()){
-            printf("Got RF data??? %d\n", RFM69_DATALEN);
+            printf("Got RF data:");
             for(i=0; i<RFM69_DATALEN; i++){
-                printf(" %02X", RFM69_DATA[i]);
+                printf(" %02X", RF_data_prelim.rawBytes[i]);
             }
             printf("\n");
+            RFM69_processPacket();
+            //RFM69_send((uint8_t *)(&RF_data.packetID), 2);
         }
         
         if(unhandledIntFlag){
@@ -314,7 +317,6 @@ void __interrupt(irq(IOC), low_priority) IOCISR(void) {
     if(IOCCFbits.IOCCF7){
         //RF DIO0
         RF_haveData = TRUE;
-        RFM69_interruptHandler();
         IOCCFbits.IOCCF7 = FALSE;
         return;
     }
