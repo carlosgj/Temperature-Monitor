@@ -1,25 +1,70 @@
 #include "DS1374.h"
 
 uint8_t RTC_init(void){
-    return 1;
+    uint8_t status = 0;
+    
+    //Check for presence of RTC
+//    I2C1ADB1 = (DS1374_I2C_ADDRESS << 1) | 1; //Set read bit
+//    I2C1CNTL = 0;
+//    I2C1CON0bits.S = TRUE;
+//    
+//    __delay_ms(10);
+//    
+//    
+//    if(I2C1CON1bits.ACKSTAT){
+//        //ACK not received
+//        printf("RTC: I2C ACK not received.\n");
+//        status = 1;
+//    } else{
+//        //ACK received
+//        printf("RTC: ACK received.\n");
+//    }
+    
+    RTC_readAll();
+    
+    uint32_t testSeconds;
+    uint8_t stat;
+    stat = RTC_getSeconds(&testSeconds);
+    printf("\tRTC: Status: %d Time: %lu s\n", stat, testSeconds);
+    
+    return status;
 }
 
-void RTC_writeReg(uint8_t address, uint8_t data){
-
+uint8_t RTC_writeReg(uint8_t address, uint8_t data){
+    uint8_t status = 0;
+    uint8_t buf[2];
+    buf[0] = address;
+    buf[1] = data;
+    status = I2C_write(DS1374_I2C_ADDRESS, buf, 2);
+    return status;
 }
 
-uint8_t RTC_readReg(uint8_t address){
-    return 0;
+uint8_t RTC_readReg(uint8_t address, uint8_t *data){
+    uint8_t status = 0;
+    *data = address; //Use data as temp buffer
+    status = I2C_write(DS1374_I2C_ADDRESS, data, 1);
+    if(status != 0){
+        return status;
+    }
+    status = I2C_read(DS1374_I2C_ADDRESS, data, 1);
+    return status;
+}
+
+uint8_t RTC_getSeconds(uint32_t *secs){
+    uint8_t status = 0;
+    uint8_t buf[4];
+    buf[0] = 0;
+    status = I2C_write(DS1374_I2C_ADDRESS, buf, 1);
+    if(status != 0){
+        return status;
+    }
+    status = I2C_read(DS1374_I2C_ADDRESS, buf, 4);
+    *secs = *(uint32_t *)buf;
+    
+    return status;
 }
 
 void getTime(){
-    seconds_reg.all = RTC_readReg(REG_SECOND);
-    minutes_reg.all = RTC_readReg(REG_MINUTE);
-    hours_reg.all = RTC_readReg(REG_HOUR);
-    date_reg.all = RTC_readReg(REG_DATE);
-    month_reg.all = RTC_readReg(REG_MONTH);
-    years_reg.all = RTC_readReg(REG_YEAR);
-    
     currentYear = (years_reg.tens * 10)+years_reg.ones;
     currentMonth = (month_reg.tens * 10)+month_reg.ones;
     currentDay = (date_reg.tens*10)+date_reg.ones;
@@ -27,34 +72,27 @@ void getTime(){
     minuteOfDay = (minutes_reg.tens*10)+minutes_reg.ones+(currentHour*60);
 }
 
-//Writes the prospective time (in pros_*) to RTC
 void setTime(void){
-    RTC_writeReg(REG_SECOND, pros_seconds.all);
-    __delay_ms(1);
-    RTC_writeReg(REG_MINUTE, pros_minutes.all);
-    __delay_ms(1);
-    RTC_writeReg(REG_HOUR, pros_hours.all);
-    __delay_ms(1);
-    RTC_writeReg(REG_DATE, pros_date.all);
-    __delay_ms(1);
-    RTC_writeReg(REG_MONTH, pros_month.all);
-    __delay_ms(1);
-    RTC_writeReg(REG_YEAR, pros_years.all);
-    //Clear OSF flag
-    //unsigned char oldStat = readRTCReg(REG_STAT);
-    //oldStat &= 0b01111111;
-    //writeRTCReg(REG_STAT, oldStat);
 }
 
-void readAll(void){
-    
-}
-
-
-void RTCOscRestart(void){
-    RTC_writeReg(REG_CONTROL, 0b10000100); //Enable write
-    //foo = readRTCReg(REG_CONTROL);
-    RTC_writeReg(REG_CONTROL, 0b10000100); //Disable oscillator
-    __delay_ms(10);
-    RTC_writeReg(REG_CONTROL, 0b00000100); //Enable oscillator
+void RTC_readAll(void){
+    uint8_t i = 0;
+    uint8_t status;
+    uint8_t buf[12];
+    //Set register pointer to 0
+    memset(buf, 0, 12);
+    status = I2C_write(DS1374_I2C_ADDRESS, buf, 1);
+    if(status != 0){
+        printf("RTC I2C write error: %d\n", status);
+        return;
+    }
+    //Read 10 bytes
+    status = I2C_read(DS1374_I2C_ADDRESS, buf, 10);
+    if(status != 0){
+        printf("RTC I2C write error: %d\n", status);
+        return;
+    }
+    for(i=0; i<12; i++){
+        printf("\tRTC: Reg %02X: %02X\n", i, buf[i]);
+    }
 }

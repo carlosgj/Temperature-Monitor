@@ -16,6 +16,7 @@
 #include "MDD_File_System/SD-SPI.h"
 #include "MDD_File_System/FSIO.h"
 #include "timers.h"
+#include "DS1374.h"
 
 #define MINOR_CYCLE_TIME_LIMIT_MS   100
 #define MAJOR_CYCLE_LENGTH  10

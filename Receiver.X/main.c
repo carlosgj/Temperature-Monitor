@@ -46,7 +46,7 @@ uint8_t init(void) {
     printf("\n");
 
     timerInit();
-    
+
     printf("Startup delay...\n");
     __delay_ms(500);
     __delay_ms(500);
@@ -89,17 +89,24 @@ uint8_t init(void) {
             initError = 1;
         }
     } else {
-        printf("I2C initialized.\n");
-    }
-    printf("\n");
-
-    if (initErrorCode == 0) {
-        //Don't bother trying to init RTC if I2C failed
+        printf("I2C initialized.\n\n");
 
         datetime_tests();
 
         //Initialize RTC & get current timestamp
         printf("Initializing RTC...\n");
+        initErrorCode = RTC_init();
+
+        if (initErrorCode != 0) {
+            printf("RTC init error %d!\n", initErrorCode);
+            if (initError == 0) {
+                initError = 1;
+            }
+        } else {
+            printf("RTC initialized.\n");
+        }
+
+
         //DEBUG CODE!
         //currentYear = 18;
         //currentMonth = 12;
@@ -143,8 +150,7 @@ uint8_t init(void) {
         } else {
             safeMode = FALSE;
         }
-    } else {
-        printf("Skipping RTC init due to I2C failure.\n");
+
     }
     printf("\n");
 
@@ -161,49 +167,49 @@ uint8_t init(void) {
     }
     printf("\n");
 
-//    printf("Running FAT demo\n");
-//    uint16_t foo = MDD_SDSPI_ReadSectorSize();
-//    printf("Sector size: %d\n", foo);
-//
-//    TRISCbits.TRISC7 = OUTPUT;
-//
-//    uint8_t i;
-//    uint16_t startTime, oldTime, newTime, endTime;
-//    int16_t closeResult;
-//    uint8_t dataToWrite[12];
-//    uint8_t len;
-//    FSFILE *fob;
-//    SPI2_Open_SDFast();
-//    for (i = 0; i < 2; i++) {
-//        getMillis(&startTime);
-//        LATCbits.LATC7 = !LATCbits.LATC7;
-//        printf("Opening file...\n");
-//        getMillis(&oldTime);
-//        fob = FSfopen("test", "a+");
-//        getMillis(&newTime);
-//        printf("File opened; pointer=%p.\n", fob);
-//        printf("Error: %d\n", FSerror());
-//        printf("Open time: %d ms\n", newTime - oldTime);
-//
-//        printf("Writing to file...\n");
-//        getMillis(&oldTime);
-//        len = sprintf(dataToWrite, "Line %d\n", i);
-//        initErrorCode = (uint8_t) FSfwrite(dataToWrite, (size_t) 1, (size_t) len, fob);
-//        getMillis(&newTime);
-//        printf("Write result: %d\n", initErrorCode);
-//        printf("Write time: %d ms\n", newTime - oldTime);
-//
-//        getMillis(&oldTime);
-//        closeResult = FSfclose(fob);
-//        getMillis(&newTime);
-//        printf("Close result: %d\n", closeResult);
-//        printf("Close time: %d ms\n", newTime - oldTime);
-//        getMillis(&endTime);
-//        printf("Total Time: %d\n", endTime - startTime);
-//    }
-//    SPI2_Close();
-//
-//    printf("FAT demo done.\n\n");
+    //    printf("Running FAT demo\n");
+    //    uint16_t foo = MDD_SDSPI_ReadSectorSize();
+    //    printf("Sector size: %d\n", foo);
+    //
+    //    TRISCbits.TRISC7 = OUTPUT;
+    //
+    //    uint8_t i;
+    //    uint16_t startTime, oldTime, newTime, endTime;
+    //    int16_t closeResult;
+    //    uint8_t dataToWrite[12];
+    //    uint8_t len;
+    //    FSFILE *fob;
+    //    SPI2_Open_SDFast();
+    //    for (i = 0; i < 2; i++) {
+    //        getMillis(&startTime);
+    //        LATCbits.LATC7 = !LATCbits.LATC7;
+    //        printf("Opening file...\n");
+    //        getMillis(&oldTime);
+    //        fob = FSfopen("test", "a+");
+    //        getMillis(&newTime);
+    //        printf("File opened; pointer=%p.\n", fob);
+    //        printf("Error: %d\n", FSerror());
+    //        printf("Open time: %d ms\n", newTime - oldTime);
+    //
+    //        printf("Writing to file...\n");
+    //        getMillis(&oldTime);
+    //        len = sprintf(dataToWrite, "Line %d\n", i);
+    //        initErrorCode = (uint8_t) FSfwrite(dataToWrite, (size_t) 1, (size_t) len, fob);
+    //        getMillis(&newTime);
+    //        printf("Write result: %d\n", initErrorCode);
+    //        printf("Write time: %d ms\n", newTime - oldTime);
+    //
+    //        getMillis(&oldTime);
+    //        closeResult = FSfclose(fob);
+    //        getMillis(&newTime);
+    //        printf("Close result: %d\n", closeResult);
+    //        printf("Close time: %d ms\n", newTime - oldTime);
+    //        getMillis(&endTime);
+    //        printf("Total Time: %d\n", endTime - startTime);
+    //    }
+    //    SPI2_Close();
+    //
+    //    printf("FAT demo done.\n\n");
 
     printf("Initializing RFM69...\n");
     initErrorCode = RFM69_initialize(0, 0xd4);
@@ -235,7 +241,7 @@ void run(void) {
     while (TRUE) {
         getMillis(&minorCycleStartTime);
 
-        
+
         //-------- Actual tasks --------------
         if (messageInProgressFlag) {
             __delay_ms(20);
@@ -243,8 +249,8 @@ void run(void) {
             currentTemperatureByte = formatTemperatureToChar(tempReadingRaw);
             asm("NOP");
         }
-        
-        if(RFM69_receiveDone()){
+
+        if (RFM69_receiveDone()) {
             //printf("Got RF data:");
             //for(i=0; i<RFM69_DATALEN; i++){
             //    printf(" %02X", RF_data_prelim.rawBytes[i]);
@@ -254,28 +260,28 @@ void run(void) {
             printf("RF packet ID: %u\n", RF_data_good.packetID);
             //RFM69_send((uint8_t *)(&RF_data_good.packetID), 2);
         }
-        
-        if(unhandledIntFlag){
+
+        if (unhandledIntFlag) {
             printf("Unhandled interrupt: %d\n", lastUnhandledInt);
             unhandledIntFlag = FALSE;
         }
-        
-        if(unhandledIOCIntFlag){
+
+        if (unhandledIOCIntFlag) {
             printf("Unhandled IOC interrupt!\n");
             unhandledIOCIntFlag = FALSE;
         }
-        
+
         //getTime();
         UI_periodic(minorCycleCounter);
 
         //----------------------------------------
-        
+
         minorCycleCounter++;
         if (minorCycleCounter == MAJOR_CYCLE_LENGTH) {
             minorCycleCounter = 0;
             //printf("Major cycle\n");
         }
-        
+
         getMillis(&minorCycleEndTime);
         minorCycleDuration = minorCycleEndTime - minorCycleStartTime;
         //printf("%u\n", minorCycleDuration);
@@ -294,7 +300,7 @@ void run(void) {
     //    }
     //}
     //if (oldDay != currentDay) {
-        //incrementEEPROMPageIndex();
+    //incrementEEPROMPageIndex();
     //}
 
     //pros_seconds.all = 0;
@@ -314,8 +320,9 @@ void run(void) {
 }
 
 //Put the IOC ISR here, since multiple modules need it
+
 void __interrupt(irq(IOC), low_priority) IOCISR(void) {
-    if(IOCBFbits.IOCBF2){
+    if (IOCBFbits.IOCBF2) {
         //RF DIO0
         RF_haveData = TRUE;
         IOCBFbits.IOCBF2 = FALSE;
