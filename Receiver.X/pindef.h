@@ -24,6 +24,7 @@
 #define SD_CS_TRIS          TRISDbits.TRISD4
 #define SD_CS_LAT           LATDbits.LATD4
 #define SD_CD_TRIS          TRISCbits.TRISC7
+#define SD_CD_WPU           WPUCbits.WPUC7
 #define SD_CD_PORT          PORTCbits.RC7
 
 #define RFM69_CS_TRIS       TRISCbits.TRISC5

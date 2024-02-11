@@ -384,9 +384,16 @@ uint8_t FSInit(void){
     gLastFATSectorRead = 0xFFFFFFFF;       
     gLastDataSectorRead = 0xFFFFFFFF;  
 
-    //MDD_InitIO();
+    MDD_InitIO();
+    uint8_t error = 0;
+    if(!MDD_MediaDetect()){
+        printf("SD: No media detected! Insert card.\n");
+        error = 6;
+        return error;
+    }
+    
     printf("\tFAT: Attempting mount\n");
-    uint8_t error = DISKmount(&gDiskData);
+    error = DISKmount(&gDiskData);
     if (error == CE_GOOD){
     // Initialize the current working directory to the root
 #ifdef ALLOW_DIRS

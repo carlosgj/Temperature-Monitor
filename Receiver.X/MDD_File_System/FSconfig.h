@@ -39,7 +39,7 @@
 //#include "Compiler.h"
 
 #define USE_SD_INTERFACE_WITH_SPI 
-#define MEDIA_SOFT_DETECT
+//#define MEDIA_SOFT_DETECT
 
 
 // Summary: A macro indicating the maximum number of concurrently open files

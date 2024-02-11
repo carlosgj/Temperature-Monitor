@@ -194,7 +194,7 @@ static void PIC18_Optimized_SPI_Read_Packet(void);
 uint8_t MDD_SDSPI_MediaDetect (void)
 {
 #ifndef MEDIA_SOFT_DETECT
-    return(!SD_CD);
+    return(!SD_CD_PORT);
 #else
 	MMC_RESPONSE    response;
 
@@ -376,9 +376,9 @@ uint32_t MDD_SDSPI_ReadCapacity(void)
     None
   *********************************************************/
 
-void MDD_SDSPI_InitIO (void)
-{
-  
+void MDD_SDSPI_InitIO (void){
+    SD_CD_TRIS = INPUT;
+    SD_CD_WPU = TRUE;
 }
 
 
