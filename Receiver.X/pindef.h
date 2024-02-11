@@ -27,6 +27,9 @@
 #define RFM69_CS_TRIS       TRISCbits.TRISC5
 #define RFM69_CS_LAT        LATCbits.LATC5
 
+#define RFM69_RST_TRIS      TRISCbits.TRISC6
+#define RFM69_RST_LAT       LATCbits.LATC6
+
 #define BUTTON1_TRIS        TRISAbits.TRISA0
 #define BUTTON2_TRIS        TRISAbits.TRISA1
 #define BUTTON3_TRIS        TRISAbits.TRISA2

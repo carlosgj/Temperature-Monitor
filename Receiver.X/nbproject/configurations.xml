@@ -28,6 +28,7 @@
       <itemPath>UI.h</itemPath>
       <itemPath>RFM69.h</itemPath>
       <itemPath>timers.h</itemPath>
+      <itemPath>config.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"

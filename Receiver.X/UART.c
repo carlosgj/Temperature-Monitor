@@ -4,15 +4,15 @@ void debug_UART_init(void){
     FIFOInit(&DbgUARTRxBuf);
     
     //Setup UART pins
-    //RB2 is input
-    ANSELBbits.ANSELB2 = FALSE;
-    TRISBbits.TRISB2 = INPUT;
-    U2RXPPS = 0b001010;
+    //RB4 is input
+    ANSELBbits.ANSELB4 = FALSE;
+    TRISBbits.TRISB4 = INPUT;
+    U2RXPPS = 0b001100;
     
-    //RB1 is output
-    ANSELBbits.ANSELB1 = FALSE;
-    TRISBbits.TRISB1 = OUTPUT;
-    RB1PPS = 0x23;
+    //RB3 is output
+    ANSELBbits.ANSELB3 = FALSE;
+    TRISBbits.TRISB3 = OUTPUT;
+    RB3PPS = 0x23;
     
     //Setup BRG
     U2CON0bits.BRGS = TRUE;
