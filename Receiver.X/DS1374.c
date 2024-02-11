@@ -92,7 +92,16 @@ void RTC_readAll(void){
         printf("RTC I2C write error: %d\n", status);
         return;
     }
-    for(i=0; i<12; i++){
-        printf("\tRTC: Reg %02X: %02X\n", i, buf[i]);
+    
+    printf("\tRTC Reg:");
+    for(i=0; i<10; i++){
+        printf(" %02X", i);
     }
+    printf("\n");
+    
+    printf("\tReg Val:");
+    for(i=0; i<10; i++){
+        printf(" %02X", buf[i]);
+    }
+    printf("\n");
 }
