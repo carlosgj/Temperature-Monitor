@@ -2,7 +2,6 @@
 
 void serialInit(void){
     //Configure pin
-    THERM_TRIS = INPUT;
     //RX1PPS = 0b00010101; //C5
     
     //Setup BRG

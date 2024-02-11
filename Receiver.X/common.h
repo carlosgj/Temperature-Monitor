@@ -62,6 +62,8 @@ unsigned char tempData[365] = {140, 146, 154, 162, 170, 178, 184, 190, 196, 202,
 
 const unsigned char daysPerMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
+uint8_t newRFDataFlag = FALSE;
+
 FIFO DbgUARTRxBuf;
 
 #endif	/* XC_HEADER_TEMPLATE_H */

@@ -41,21 +41,13 @@
 #define RF69_MODE_TX            4 // TX MODE
 
 // available frequency bands
-#define RF69_315MHZ            31 // non trivial values to avoid misconfiguration
-#define RF69_433MHZ            43
-#define RF69_868MHZ            86
 #define RF69_915MHZ            91
 
-#define null                  0
 #define COURSE_TEMP_COEF    -90 // puts the temperature reading in the ballpark, user can fine tune the returned value
 #define RF69_BROADCAST_ADDR 255
 #define RF69_CSMA_LIMIT_MS 1000
 #define RF69_TX_LIMIT_MS   1000
 #define RF69_FSTEP  61.03515625 // == FXOSC / 2^19 = 32MHz / 2^19 (p13 in datasheet)
-
-// TWS: define CTLbyte bits
-#define RFM69_CTL_SENDACK   0x80
-#define RFM69_CTL_REQACK    0x40
 
 union RF_Data_t {
     uint8_t rawBytes[RF69_MAX_DATA_LEN];
@@ -83,11 +75,9 @@ void RFM69_setMode(uint8_t newMode);
 void RFM69_setAddress(uint8_t addr);
 uint8_t RFM69_receiveDone(void);
 void RFM69_sendACK(const void* buffer, uint8_t bufferSize);
-unsigned long RFM69_getFrequency();
 void RFM69_setFrequency(unsigned long freqHz);
 void RFM69_encrypt(const char* key);
 signed int RFM69_readRSSI(void); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
-void RFM69_promiscuous(uint8_t onOff);
 void RFM69_setHighPower(uint8_t onOFF); // has to be called after initialize() for RFM69HW
 void RFM69_setPowerLevel(uint8_t level); // reduce/increase transmit power level
 void RFM69_rcCalibration(); // calibrate the internal RC oscillator for use in wide temperature variations - see datasheet section [4.3.5. RC Timer Accuracy]
@@ -99,12 +89,11 @@ void RFM69_writeReg(uint8_t address, uint8_t data);
 uint8_t RFM69_readReg(uint8_t address);
 void RFM69_send(const uint8_t* data, uint8_t len);
 void RFM69_processPacket(void);
+void RFM69_reset(void);
 
 volatile uint8_t RF_haveData;
 
 uint8_t RF_address;
-uint8_t RF_promiscuousMode;
 uint8_t RF_powerLevel;
-//uint8_t RF_isRFM69HW = TRUE;
 
 #endif

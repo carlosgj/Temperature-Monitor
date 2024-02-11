@@ -245,13 +245,14 @@ void run(void) {
         }
         
         if(RFM69_receiveDone()){
-            printf("Got RF data:");
-            for(i=0; i<RFM69_DATALEN; i++){
-                printf(" %02X", RF_data_prelim.rawBytes[i]);
-            }
-            printf("\n");
+            //printf("Got RF data:");
+            //for(i=0; i<RFM69_DATALEN; i++){
+            //    printf(" %02X", RF_data_prelim.rawBytes[i]);
+            //}
+            //printf("\n");
             RFM69_processPacket();
-            //RFM69_send((uint8_t *)(&RF_data.packetID), 2);
+            printf("RF packet ID: %u\n", RF_data_good.packetID);
+            //RFM69_send((uint8_t *)(&RF_data_good.packetID), 2);
         }
         
         if(unhandledIntFlag){
@@ -314,10 +315,10 @@ void run(void) {
 
 //Put the IOC ISR here, since multiple modules need it
 void __interrupt(irq(IOC), low_priority) IOCISR(void) {
-    if(IOCCFbits.IOCCF7){
+    if(IOCBFbits.IOCBF2){
         //RF DIO0
         RF_haveData = TRUE;
-        IOCCFbits.IOCCF7 = FALSE;
+        IOCBFbits.IOCBF2 = FALSE;
         return;
     }
     unhandledIOCIntFlag = TRUE;
