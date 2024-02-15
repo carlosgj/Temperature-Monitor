@@ -194,7 +194,15 @@ static void PIC18_Optimized_SPI_Read_Packet(void);
 uint8_t MDD_SDSPI_MediaDetect (void)
 {
 #ifndef MEDIA_SOFT_DETECT
-    return(!SD_CD_PORT);
+    uint8_t result; 
+    result = !SD_CD_PORT;
+    if(result){
+        printf("\tSD: Card detected.\n");
+    }
+    else{
+        printf("\tSD: Card NOT detected!\n");
+    }
+    return(result);
 #else
 	MMC_RESPONSE    response;
 

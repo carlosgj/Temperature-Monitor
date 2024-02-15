@@ -266,12 +266,19 @@ void RFM69_interruptHandler() {
         }
         RFM69_TARGETID = SPI2Transfer(0);
         //printf("TARGETID: %02X\n", RFM69_TARGETID);
-        if (!(RFM69_TARGETID == RF_address || RFM69_TARGETID == RF69_BROADCAST_ADDR) // match this node's address, or broadcast address or anything in promiscuous mode
-                || RFM69_PAYLOADLEN < 3) // address situation could receive packets that are malformed and don't fit this libraries extra fields
-        {
+        if (!(RFM69_TARGETID == RF_address || RFM69_TARGETID == RF69_BROADCAST_ADDR)){ // match this node's address, or broadcast address or anything in promiscuous mode
             RFM69_PAYLOADLEN = 0;
-            printf("\tRF: Invalid address.\n");
+            printf("\tRF: Received packet with incorrect accress.\n");
             RFM69_CS_LAT = TRUE;
+            SPI2_Close();
+            RFM69_receiveBegin();
+            return;
+        }
+        if(RFM69_PAYLOADLEN < 3){ // address situation could receive packets that are malformed and don't fit this libraries extra fields
+            RFM69_PAYLOADLEN = 0;
+            printf("\tRF: Received undersize packet.\n");
+            RFM69_CS_LAT = TRUE;
+            SPI2_Close();
             RFM69_receiveBegin();
             return;
         }
